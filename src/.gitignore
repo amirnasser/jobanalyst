@@ -1,2 +1,2 @@
-./src/config.json
-./src/uploads/*.*
+src/config.json
+src/uploads/*.*
