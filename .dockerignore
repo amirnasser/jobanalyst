@@ -1,0 +1,9 @@
+# .dockerignore
+.DS_Store
+__pycache__
+*.py[cod]
+*$py.class
+.idea
+.vscode
+venv/
+node_modules/

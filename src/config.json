@@ -1,0 +1,8 @@
+{
+    "api_key": "",
+    "base_url" : "",
+    "openwebui_foldername": "Jobs",
+    "upload_folder": "uploads",
+    "allowed_extensions": ["htm", "html", "pdf"],
+    "question": "Based on Resume.pdf, am I a good candidate?return {result:yes/no, reason:...,missing: missing abilities, coverletter: create a cover letter}"
+}
