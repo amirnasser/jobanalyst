@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vscode
+/winform/JobAnalyzer/.vs
+/winform/JobAnalyzer/BLL/bin/Debug/net8.0
+/winform/JobAnalyzer/BLL/obj/Debug/net8.0
+/winform/JobAnalyzer/BLL/obj
+/winform/JobAnalyzer/JobAnalyzer/bin/Debug/net8.0-windows
+/winform/JobAnalyzer/JobAnalyzer/obj

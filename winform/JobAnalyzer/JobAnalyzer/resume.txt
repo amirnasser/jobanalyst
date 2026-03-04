@@ -1,0 +1,166 @@
+﻿Amirhossein Nassergivchi
+Solution Architect & Senior Software Developer
+Richmond Hill, ON, Canada
+amir.nasser@gmail.com | 416-931-5050 | amirnasser.ca
+Professional Summary
+Innovative and results-driven Solution Architect and Senior Software Developer with over 15
+years of experience designing and building secure, high-performance software solutions across
+web, cloud, and hybrid environments. Adept at leading cross-functional teams, mentoring
+developers, and delivering scalable systems for enterprise clients. Passionate about blending
+intuitive design with robust architecture to create software that lasts.
+Education
+Eastern Mediterranean University
+• Master of Information Systems
+• Bachelor of Science in Information Technology
+Full Academic Scholarship Recipient
+Technical Skills
+Software Architecture & Development
+• AI & Automation: AI‑powered feature development, model integration, workflow
+automation
+• Languages & Frameworks: C#, PHP, .NET Framework, .NET Core , ASP.NET, MVC, Laravel,
+Symphony, Entity Framework, Enterprise Library, Telerik Components, KendoUI,
+Composer
+• Front-End: JavaScript, TypeScript, Angular, Vue.js, Blazor, HTML5, CSS, KnockOutJs
+• CMS & Customization: WordPress development, PHP customization, WooCommerce
+integration
+• System Design: API design, routing, caching, templating, security, Redis (in‑memory
+caching, pub/sub, session storage)
+• Tools & Platforms: Git, JIRA, Azure DevOps, Azure Portal, Google Cloud Platform (GCP),
+AWS, Grafana
+• Cloud & Containerization: Docker, Docker Swarm, Kubernetes
+• Architecture: Microservices architecture, API design, routing, caching, templating,
+security, distributed systems, Kong API Gateway
+• Deployment & Optimization: CI/CD pipelines, performance tuning, automated
+deployment workflows
+• Web Servers & Reverse Proxies: Nginx, Apache, IIS (reverse proxying, load balancing,
+SSL/TLS, caching, performance tuning, security hardening)
+Database Management
+• Microsoft SQL Server, MySQL, PostgreSQL, Oracle, MongoDB, Firebird
+• Stored procedures, views, functions, optimization
+• Relational & NoSQL database design
+• Data governance & compliance best practicesBusiness Intelligence & Analytics
+• BI tools integration: Looker, Tableau, Power BI
+• Data modeling, reporting pipelines, dashboard development
+API Gateway & Service Mesh
+• Kong (routing, load balancing, JWT/OAuth2 auth, rate limiting, plugin configuration,
+observability, microservices integration)
+Web Servers & Reverse Proxies
+• Nginx, Apache, IIS (reverse proxying, load balancing, SSL/TLS, caching, performance
+tuning, security hardening)
+System Administration
+• Operating Systems: CentOS, Debian, Ubuntu, Windows Server
+• Server Management: Dedicated Linux/Windows servers, network configuration,
+performance tuning, security hardening, backup strategies
+• Server Management: Dedicated Linux and Windows servers, performance tuning, and
+security hardening
+• Infrastructure: LAN/WAN configuration, firewall rules, VLANs, DNS/DHCP, remote access,
+monitoring, and uptime management
+WebNeat (Consulting Firm)
+Founder & Senior Solution Architect / Consultant 2024-Now
+• Providing consulting services in software architecture, cloud modernization, AI‑powered
+development, and enterprise system integration.
+• Designing and delivering scalable, secure solutions for clients across web, cloud, and
+hybrid environments.
+• Leading end to end development of custom applications using .NET, PHP, JavaScript
+frameworks, and modern cloud platforms (Azure, AWS, GCP).
+• Implementing microservices architectures, CI/CD pipelines, Kubernetes deployments,
+and containerized workflows.
+• Advising organizations on data governance, compliance, and modernization of legacy
+systems.
+• Integrating BI tools (Looker, Tableau, Power BI) into operational workflows to support
+data driven decision making.
+• Managing on premise infrastructure, including ESXi virtualization, networking, storage,
+and security hardening.
+• Collaborating with business stakeholders to translate requirements into technical
+roadmaps and deliverables.
+Whitecap Canada
+Solution Architect - Senior Software Developer 2010-2024
+• Collaborated with backend teams to design and implement tools that streamlined
+application deployment and testing.
+• Developed utilities that improved the security and efficiency of day-to-day deployments
+to backend servers.• Built solutions to test and validate WCF and REST services, ensuring reliability and faster
+troubleshooting.
+• Contributed to improving team workflows by creating automation scripts and
+deployment aids that reduced manual effort.
+• Delivered scalable solutions for a diverse portfolio of clients, including:
+• Woodbine Entertainment Group (HPIBet.com, Woodbine.com)
+• Miele Canada (Miele.ca)
+• Park’N Fly (Parknfly.ca)
+• Caplans (Caplans.ca)
+• Travel Insurance Office (travelinsuranceoffice.com)
+• Ontario Sires Stakes (oss.ontariosiresstakes.com)
+• RiskCheck (riskcheckinc.com)
+• Second Harvest (foodrescue.ca)
+• Ontario Thoroughbred Improvement Program (tip.ontarioracing.com)
+• …and additional enterprise and nonprofit clients across Canada
+Hub International
+Software Developer 2009-2010
+• Customized an open-source PHP application (named Orange HRM) to align with HR
+requirements and organizational workflows.
+• Adapted and extended system functionality to improve usability, compliance, and
+efficiency for HR operations.
+• Collaborated with stakeholders to gather requirements and deliver tailored solutions
+that supported day‑to‑day HR processes.
+Bizinabz
+Web Developer 11/2008 – 01/2009
+Designed and documented workflow and system architect based on business requirements with
+UML.
+• Designed database tables, query optimization, stored procedure, Triggers on MySQL 5.
+• Developed PHP modules/classes based on MVC and PEAR framework.
+• Developed URL rewriting to implement search engine friendly URLs on IIS.
+• Programmed client side RIA and AJAX scripts with jQuery.
+• Designed browser friendly web interface based on XHTML 1.1, CSS 2, and SMARTY
+templates.
+• Developed Web Service API with C# for administration software.
+Bobac CFS – Alameda, CA
+Intermediate Developer 10/2007– 11/2008
+Description: Bobac CFS is a warehouse, trucking, Custom Examination, FDA and USDA
+Examination that can handle more than 100 container at anytime. Purpose of the project was to
+build an ERP/CRM/Accounting application.
+• Developed C# windows program
+• Implement PHP Web-Service with SOAP
+• Re-designed database structure to improve integrity, reliability and support transaction
+on MySQL 5 InnoDB engine.
+• Develop PHP Web Service for invoicing and communicating with customers.
+• Designed and developed new reports by using Crystal Report 2008.• Languages/Technology: C#, PHP, NuSOAP Web Service, .Net Component, CoreLab MySQL
+e-Rational Solutions – Las Vegas, NV, US
+Intermediate Developer 11/2005 - 9/2007
+Description: Integration is one of the fastest growing semiconductor companies in Silicon Valley.
+Integration designs and delivers tested wafers and packaged ICs for RF, Infrared, Modem, and
+Power Management applications for systems from notebook computers to communications
+networks.
+Analyze client’s business processes; develop requirement definition to meet current and future
+needs.
+• Architect solution, designed database, manages development teams, supervised
+solution implementation at client’s site.
+• Designed and coded PHP Data Layer modules and PHP Business Objects.
+• Coded PHP security modules and classes with supporting CAPTCHA images.
+• Coded PHP Mass Mailing class
+• Coded RSS Generator
+Projects & Tools
+Developed internal tools to streamline deployment and testing processes, improving efficiency,
+security, and reliability of backend systems.
+• EasyCopy – Streamlined file duplication and deployment
+• WebDeploy – Automated web deployment workflows
+• RestAndWcfServiceTester – Simplified API and service testing
+Leadership & Collaboration
+• Mentored junior developers and led agile teams
+• Fostered cross-functional collaboration with design, UX, and QA
+• Advocated for continuous learning and workflow improvement
+Languages
+• English (Fluent)
+• Farsi
+Certifications
+• Microsoft ASP.NET Development Certification – Validated expertise in building and
+deploying web applications using ASP.NET framework.
+• Kentico CRM Certification – Demonstrated proficiency in managing customer
+relationship workflows and customizing Kentico CMS/CRM solutions.
+• Python Certification – Mastering the Essentials (Scaler Academy) – Comprehensive
+training in Python fundamentals, scripting, and application development.
+Professional Development & Continuous Learning
+• Actively advancing skills in modern JavaScript frameworks (React, Vue, Angular)
+• Building strong TypeScript proficiency through hands-on projects
+• Learning front-end build tools such as Webpack and Rollup
+• Practicing front-end testing with frameworks like Jest and Cypress
+• Improving knowledge of web performance optimization and WCAG accessibility best practices
+Top Applicant for Interview

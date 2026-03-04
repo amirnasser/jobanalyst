@@ -1,0 +1,32 @@
+{
+    "company": "Company name not available in the provided context.",
+    "coverletter": "To the Hiring Team,\\n\\nI am writing to express my strong interest in contributing to your organization. With over 15 years of experience as a Senior Software Developer and Solution Architect, I have designed and optimized enterprise-grade applications across various environments. My expertise includes .NET, cloud architecture, automation, and high-performance backend systems, with a proven track record in delivering scalable solutions and modernizing legacy platforms. I am confident in my ability to bring value to your team and look forward to discussing how my skills align with your needs.\\n\\nSincerely,\\nAmir Nasser",
+    "filename": "Source file 2 not provided.",
+    "joburl": "Job URL not available in the provided context.",
+    "missing": "Missing abilities cannot be determined without knowing the specific job requirements.",
+    "reason": "Based on the provided resume, Amir Nasser has extensive experience (15+ years) as a Senior Software Developer/Solution Architect with expertise in relevant technologies like C#, .NET, PHP, cloud architecture, and backend systems. The resume highlights strong skills in backend development, automation, and experience with major Canadian organizations, making them a competitive candidate for senior-level roles.",
+    "requirements": [
+        "C#",
+        ".NET 6/7/8",
+        "ASP .NET Core",
+        "ASP .NET MVC",
+        "EF Core",
+        "JavaScript",
+        "TypeScript",
+        "PHP",
+        "Python",
+        "React",
+        "Next.js",
+        "Vue.js",
+        "Tailwind CSS",
+        "Azure",
+        "AWS",
+        "Docker",
+        "Kubernetes",
+        "Terraform",
+        "GitHub Actions",
+        "Azure DevOps",
+        "CI/CD"
+    ],
+    "result": true
+}
