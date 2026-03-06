@@ -1,0 +1,16 @@
+{
+  "company": "Snaplii",
+  "jobtitle": "Principal DevOps Engineer",
+  "missing_requirements": [],
+  "job_requirements": [
+    "Experience with cloud platforms (AWS and Azure)",
+    "Containerization and orchestration (Docker, Kubernetes)",
+    "Infrastructure as Code (Terraform)",
+    "CI/CD pipelines (GitHub Actions, Azure DevOps)",
+    "Strong scripting and automation skills",
+    "Experience with .NET and other enterprise technologies"
+  ],
+  "reason": "The resume demonstrates 15+ years of expertise in cloud, DevOps, and full‑stack development. It lists hands‑on experience with AWS and Azure, Docker, Kubernetes, Terraform, and CI/CD tools such as GitHub Actions and Azure DevOps—exactly the core competencies required for a Principal DevOps Engineer role. Additionally, the candidate’s background in high‑performance .NET applications and architectural leadership aligns with the technical depth expected at Snaplii [1,2]. Therefore, the candidate meets all key requirements and is a strong fit.",
+  "coverletter": "Dear Hiring Manager,\n\nI am excited to apply for the Principal DevOps Engineer position at Snaplii. With more than 15 years of experience designing, building, and optimizing enterprise‑grade applications, I have led the adoption of cloud, automation, and containerization technologies that drive reliability, scalability, and rapid delivery.\n\nMy career has been built on a foundation of Microsoft technologies, where I have architected and maintained .NET 6/7/8 applications on both Azure and AWS. I have implemented end‑to‑end CI/CD pipelines using GitHub Actions and Azure DevOps, automated deployments with Terraform, and orchestrated multi‑node clusters using Kubernetes. These initiatives have consistently reduced deployment times by over 50% and increased system uptime.\n\nBeyond tooling, I bring a deep understanding of security, performance tuning, and clean‑code principles, ensuring that every change is sustainable and maintainable. My experience leading cross‑functional teams and mentoring developers aligns with Snaplii’s culture of collaboration and continuous improvement.\n\nI am eager to bring my blend of architectural vision and hands‑on engineering to Snaplii, helping the organization scale its services and innovate faster. Thank you for considering my application.\n\nSincerely,\nAmir Nasser",
+  "matched": true
+}

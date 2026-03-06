@@ -22,12 +22,20 @@ public partial class JobSearchDbContex : DbContext
         modelBuilder.Entity<JobObject>(entity =>
         {
             entity.HasKey(e => e.id);
+            
+            entity.Property(e => e.CompanyName).
+                HasColumnName("CompanyName").
+                HasColumnType("varchar(100)");
 
-            entity.Property(e => e.DataFile).
+            entity.Property(e => e.id).
+                HasColumnName("id").
+                HasColumnType("varchar(32)");
+
+            entity.Property(e => e.DataFileContent).
                 HasColumnName("ResumeFile").
                 HasColumnType("blob");
 
-            entity.Property(e => e.HtmlJobPostFile).
+            entity.Property(e => e.HtmlJobPostFileContent).
                 HasColumnName("JobFile").
                 HasColumnType("blob");
 

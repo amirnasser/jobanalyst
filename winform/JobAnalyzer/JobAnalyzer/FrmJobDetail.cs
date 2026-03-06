@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using Scriban;
+using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using JobAnalyzer.BLL;
 using JobAnalyzer.Data;
+using Scriban;
 
 namespace JobAnalyzer
 {
@@ -45,15 +47,25 @@ namespace JobAnalyzer
             }
         }
 
-        private static List<JobObject> GetJobs(string folder)
+        private List<JobObject> GetJobs(string folder)
         {
             try
             {
                 List<JobObject> jobs = new List<JobObject>();
-                List<FileInfo> files = Directory.GetFiles(folder, "*.html", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+                List<FileInfo> files = Directory.GetFiles(folder, "*.html", SearchOption.TopDirectoryOnly)
+                    .Concat(Directory.GetFiles(folder, "*.job.json", SearchOption.TopDirectoryOnly))
+                    .Select(f => new FileInfo(f)).ToList();
                 foreach (FileInfo file in files)
                 {
-                    jobs.Add(new JobObject(file.FullName));
+                    if (file.Name.EndsWith(".html"))
+                    {
+                        jobs.Add(new JobObject(file.FullName));
+                    }
+                    else if (file.Name.EndsWith(".job.json"))
+                    {
+                        JobFile jobFile = JobFile.LoadFromFile(file.FullName);
+                        jobs.Add(new JobObject(Folder, jobFile));
+                    }
                 }
                 return jobs.OrderByDescending(o => o.Shortname).ToList();
             }
@@ -97,15 +109,21 @@ namespace JobAnalyzer
                 }
                 await wv1.EnsureCoreWebView2Async();
                 await wv2.EnsureCoreWebView2Async();
-                wv1.NavigateToString(Current?.HTML?.Replace("\\n", ""));
-                RenderAsync();
+                if(!string.IsNullOrEmpty(Current?.HTML))
+                {
+                    wv1.NavigateToString(Current?.HTML?.Replace("\\n", ""));
+                    RenderAsync();
+                }
             }
         }
 
         private void lstJobs_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lstJobs.SelectedIndex >= 0)
+            {
                 bs.Position = lstJobs.SelectedIndex;
+                bs.EndEdit();
+            }
         }
 
         private void btnChrome_Click(object sender, EventArgs e)
@@ -195,7 +213,64 @@ namespace JobAnalyzer
             }
             catch (Exception exp)
             {
-                Utilities.Logger.Error(exp.Message);                
+                Utilities.Logger.Error(exp.Message);
+            }
+        }
+
+        private void btnSaveAll_Click(object sender, EventArgs e)
+        {
+            bs.EndEdit();
+            var datatosave = ((IEnumerable<JobObject>)bs.DataSource).ToList();
+            foreach (var job in datatosave)
+            {
+                job.Text = job.HTML.GetText();
+                job.HTMLFileName = new FileInfo(job.HTMLFileName).Name;
+
+                
+            }
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".data", FileName = $"Jobs_{DateTime.Now:yyyyMMddHHmmss}.data", Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    JobObject.SaveAllToFile(saveFileDialog.FileName, datatosave);
+                    txtStatus.Text = $"All data save to file `{saveFileDialog.FileName}` saved successfully.";
+                }
+                catch (Exception exp)
+                {
+                    Utilities.Logger.Error(exp.Message);
+                    MessageBox.Show($"Something went wrong please check the log file");
+                }
+            }
+
+        }
+
+        private void btnLoad_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog() { DefaultExt = ".data", Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    Response<List<JobObject>> loadedJobs = JobObject.LoadAllFromFile(openFileDialog.FileName);
+                    if (loadedJobs.Success)
+                    {
+                        Jobs = loadedJobs.Result;
+                        bs.DataSource = new BindingList<JobObject>(Jobs);
+                        lstJobs.DataSource = new BindingList<JobObject>(Jobs);
+                        txtStatus.Text = $"All data loaded from file `{openFileDialog.FileName}` successfully.";
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Failed to load data from file `{openFileDialog.FileName}`. Please check the log for details.");
+                    }
+                }
+                catch (Exception exp)
+                {
+                    Utilities.Logger.Error(exp.Message);
+                    MessageBox.Show($"Something went wrong please check the log file");
+                }
             }
         }
     }

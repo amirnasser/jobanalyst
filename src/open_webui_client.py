@@ -1,6 +1,4 @@
 import os
-import datetime
-
 import json
 import requests
 from urllib.parse import urljoin
@@ -9,13 +7,8 @@ import logging
 logging.basicConfig(
     filename="app.log",
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(funcName)s() - %(message)s"
+    format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(funcName)s() - %(message)s",
 )
-
-
-logging.info("Application started")
-logging.error("Something went wrong")
-logging.critical("Fatal error occurred")
 
 class OpenWebUI:
     config_file = "config.json"
@@ -24,6 +17,8 @@ class OpenWebUI:
     openwebui_foldername = ""
     folder_id = ""
     question = ""
+    chat_id = ""
+    upload_filename = ""
 
     def get_settings(self):
         """Load and return settings from config.json."""
@@ -43,7 +38,19 @@ class OpenWebUI:
         self.api_key = settings.get("api_key", "")
         self.openwebui_foldername = settings.get("openwebui_foldername", "Jobs")
         self.upload_folder = settings.get("upload_folder", "uploads")
-        self.question = settings.get("question", "Based on Resume.pdf, am I a good candidate?return {result:yes/no, reason:...,missing: missing abilities}. otherwise create a cover letter.")
+        
+        # read the file propmpt.txt and set it as the question
+        try:
+            with open("prompt.txt", "r") as f:
+                self.question = f.read().strip()
+        except FileNotFoundError:
+            logging.error("Error: prompt.txt not found. Using default question.")
+            self.question = "What is in the file?"
+
+        # self.question = settings.get(
+        #     "question",
+        #     self.question,
+        # )
 
     def upload_file(self, filename):
         """Upload a file to the specified API endpoint.
@@ -57,7 +64,7 @@ class OpenWebUI:
         """
 
         self.get_folders()
-
+        self.upload_filename = filename
         endpoint = "/api/v1/files/?process=true&process_in_background=true"
         full_url = urljoin(self.base_url, endpoint)
         headers = {"Authorization": f"Bearer {self.api_key}"}
@@ -72,16 +79,7 @@ class OpenWebUI:
             if response.status_code == 200:
                 file_id = response.json().get("id")
                 print(f"File uploaded successfully. File ID: {file_id}")
-
-                new_chat_response = self.create_new_chat(file_id, filename)
-
-                chat_id = new_chat_response.get("id")
-                print(f"New chat created successfully. Chat ID: {chat_id}")
-
-                get_completions_response = self.get_completions(chat_id, file_id)
-                self.save_assistant(chat_id, get_completions_response.get("content", ""))
-                
-                return get_completions_response
+                return response.json()
 
             elif response.status_code == 401:
                 logging.info("Error: Unauthorized - Invalid API key.")
@@ -90,7 +88,9 @@ class OpenWebUI:
                 logging.info("Error: The requested resource was not found.")
                 return None
             else:
-                logging.error(f"Unexpected error occurred. Status code: {response.status_code}")
+                logging.error(
+                    f"Unexpected error occurred. Status code: {response.status_code}"
+                )
                 logging.error(f"Response text: {response.text}")
                 return None
         except requests.exceptions.Timeout:
@@ -100,36 +100,80 @@ class OpenWebUI:
             logging.error(f"An error occurred during the request: {str(e)}")
             return None
 
-    def get_completions(self, chat_id, file_id):
+    def delete_chat(self):
+        endpoint = f"/api/v1/chats/{self.chat_id}"
+        full_url = urljoin(self.base_url, endpoint)
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+
+        try:
+            response = requests.delete(full_url, headers=headers, timeout=10)
+
+            if response.status_code == 200:
+                logging.info(f"Chat {self.chat_id} deleted successfully.")
+                self.chat_id = None
+                return True
+            elif response.status_code == 401:
+                logging.error("Error: Unauthorized - Invalid API key.")
+                return False
+            elif response.status_code == 404:
+                logging.error("Error: The requested resource was not found.")
+                return False
+            else:
+                logging.error(
+                    f"Unexpected error occurred. Status code: {response.status_code}"
+                )
+                logging.error(f"Response text: {response.text}")
+                return False
+        except requests.exceptions.Timeout:
+            logging.error("Request timed out after 10 seconds.")
+            return False
+        except requests.exceptions.RequestException as e:
+            logging.error(f"An error occurred during the request: {str(e)}")
+            return False
+
+    def get_completions(self, file_id):
         endpoint = "/api/chat/completions"
         full_url = urljoin(self.base_url, endpoint)
         headers = {"Authorization": f"Bearer {self.api_key}"}
+
         data = {
-            "chat_id": chat_id,
+            "chat_id": self.chat_id,
             "model": "gpt-oss:20b",
             "messages": [
                 {
                     "role": "user",
                     "content": self.question,
-                    "files": ["file-" + file_id],
-                },
+                    "files":["file-" + file_id],
+                }
             ],
-            "stream": False,
+            "stream": False
         }
-        
-        logging.info(f"Start get completions. Sending request to {full_url} with data: {data}")
-        #return  # specifically returns for debugging the get_completions function without making the actual API call
+
+        logging.info(
+            f"Start get completions. Sending request to {full_url} with data: {data}"
+        )
 
         try:
-            logging.info(f"Sending request to {full_url} with data: {data}")            
+            logging.info(
+                f"Sending request for completions to {full_url} with data: {data}"
+            )
             response = requests.post(full_url, headers=headers, json=data, timeout=300)
             logging.info(f"Get completions response : {response}")
+                        
             if response.status_code == 200:
-                content = response.json()["choices"][0]["message"]["content"]
-                logging.info(f"Content retrieved: {content}")
-                clean = content.strip().strip("```").replace("json", "", 1).strip()
-                parsed = json.loads(clean)
-                return parsed
+                try:
+                    response_json = response.json()
+                    logging.info(f"Response JSON: {response_json}")
+                    content = response_json["choices"][0]["message"]["content"]
+                    logging.info(f"Content retrieved: {content}")
+                    clean = content.strip().strip("```").replace("json", "", 1).strip()
+                    return json.loads(clean)
+
+                except Exception as e:
+                    logging.error(f"Error parsing response: {str(e)}")
+                    logging.error(f"Response text: {response.text}")
+                    return response.json()
+
             elif response.status_code == 401:
                 logging.error("Error: Unauthorized - Invalid API key.")
                 return None
@@ -137,7 +181,9 @@ class OpenWebUI:
                 logging.error("Error: The requested resource was not found.")
                 return None
             else:
-                logging.error(f"Unexpected error occurred. Status code: {response.status_code}")
+                logging.error(
+                    f"Unexpected error occurred. Status code: {response.status_code}"
+                )
                 logging.error(f"Response text: {response.text}")
                 return None
         except requests.exceptions.Timeout:
@@ -203,7 +249,9 @@ class OpenWebUI:
                 logging.error("Error: The requested resource was not found.")
                 return None
             else:
-                logging.error(f"Unexpected error occurred. Status code: {response.status_code}")
+                logging.error(
+                    f"Unexpected error occurred. Status code: {response.status_code}"
+                )
                 logging.error(f"Response text: {response.text}")
                 return None
         except requests.exceptions.Timeout:
@@ -217,23 +265,31 @@ class OpenWebUI:
         endpoint = "/api/v1/chats/new"
         full_url = urljoin(self.base_url, endpoint)
         headers = {"Authorization": f"Bearer {self.api_key}"}
+        data = {
+            "chat": {
+                "title": filename,
+                "model": "gpt-oss:20b",
+                "messages": [
+                {
+                    "role": "user",
+                    "content": self.question,
+                    "files": [
+                    "file-" + file_id
+                    ]
+                }
+                ],
+                "folder_id": self.folder_id
+            }
+        }
 
         
-        data = {"chat": {
-            "title": filename,
-            "message": self.question,
-            "files": ["file-" + file_id]
-            }   ,
-            "model": "gpt-oss:20b", 
-            "folder_id": self.folder_id 
-            
-    }
         logging.info(f"Creating new chat with data: {data} at {full_url}")
-        
-        try:
-            response = requests.post(full_url, headers=headers, json=data, timeout=10)
 
+        try:
+            response = requests.post(full_url, headers=headers, json=data, timeout=50)
             if response.status_code == 200:
+                logging.info(f"New chat response: {response.json()}")
+                self.chat_id = response.json().get("id")
                 return response.json()
             elif response.status_code == 401:
                 logging.error("Error: Unauthorized - Invalid API key.")
@@ -242,16 +298,17 @@ class OpenWebUI:
                 logging.error("Error: The requested resource was not found.")
                 return None
             else:
-                logging.error(f"Unexpected error occurred. Status code: {response.status_code}")
+                logging.error(
+                    f"Unexpected error occurred. Status code: {response.status_code}"
+                )
                 logging.error(f"Response text: {response.text}")
                 return None
         except requests.exceptions.Timeout:
-            logging.error("Request timed out after 10 seconds.")
+            logging.error("Request timed out after 50 seconds.")
             return None
         except requests.exceptions.RequestException as e:
             logging.error(f"An error occurred during the request: {str(e)}")
             return None
-
 
     def save_assistant(self, chat_id, content):
         """
@@ -261,10 +318,7 @@ class OpenWebUI:
         full_url = urljoin(self.base_url, endpoint)
         headers = {"Authorization": f"Bearer {self.api_key}"}
 
-        data = {
-            "role": "assistant",
-            "content": content
-        }
+        data = {"role": "assistant", "content": content}
 
         logging.info(f"Saving assistant message to chat {chat_id}: {content[:80]}...")
 
@@ -280,4 +334,22 @@ class OpenWebUI:
 
         except requests.exceptions.RequestException as e:
             logging.error(f"Error saving assistant message: {str(e)}")
+            return None
+
+    def getModels(self):
+        endpoint = "/ollama/v1/models"
+        full_url = urljoin(self.base_url, endpoint)
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+
+        try:
+            response = requests.get(full_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            return response.json()
+
+        except requests.exceptions.Timeout:
+            logging.error("Timeout while fetching models.")
+            return None
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error fetching models: {str(e)}")
             return None

@@ -254,7 +254,7 @@ public partial class AICall : IDisposable
         }
     }
 
-    internal async Task<CompletionResponse> GetCompletionAsync(string jobPostFileId, string resumeFileId)
+    internal async Task<CompletionResponse> GetCompletionAsync(string chatId, string jobPostFileId, string resumeFileId)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -271,6 +271,7 @@ public partial class AICall : IDisposable
 
                 var payload = new
                 {
+                    chatid = chatId,
                     model = model,
                     messages = new[]
                     {
@@ -335,9 +336,9 @@ public partial class AICall : IDisposable
                 var statusResumeFileId = await aicall.CheckFileStatusAsync(resumeFileId);
 
                 //Create a Chat with these two files 
-                var responseCreateChatResponse = aicall.CreateChatAsync(file.FullName, folderId, resumeFileId, jobPostFileId);
+                string chatId = await aicall.CreateChatAsync(file.FullName, folderId, resumeFileId, jobPostFileId);
 
-                completionResponse = await aicall.GetCompletionAsync(jobPostFileId, resumeFileId);
+                completionResponse = await aicall.GetCompletionAsync(chatId, jobPostFileId, resumeFileId);
 
                 sw.Stop();
 
@@ -347,7 +348,6 @@ public partial class AICall : IDisposable
                 try
                 {
                     var content = completionResponse.choices[0].message.content.Cleanup();
-
 
                     aiResponse = JsonConvert.DeserializeObject<AIResponse>(content);
                     Utilities.Logger.Information($"deserialized content: {content} is {ellapsed} ms");
@@ -382,7 +382,7 @@ public partial class AICall : IDisposable
                 var folderId = await aicall.GetJobsFolderIdAsync();
                 FileInfo file = new FileInfo(job.HTMLFileName);
                 //Uplod Jobfile
-                string jobPostFileId = await aicall.UploadFileAsync(job.TextFileName, job.TextFile);
+                string jobPostFileId = await aicall.UploadFileAsync(job.TextFileName, job.TextFileContent);
                 var statusJobPostFileId = await aicall.CheckFileStatusAsync(jobPostFileId);
 
                 //Upload Resume file
@@ -390,9 +390,9 @@ public partial class AICall : IDisposable
                 var statusResumeFileId = await aicall.CheckFileStatusAsync(resumeFileId);
 
                 //Create a Chat with these two files 
-                var responseCreateChatResponse = aicall.CreateChatAsync(file.FullName, folderId, resumeFileId, jobPostFileId);
+                string chatId = await aicall.CreateChatAsync(file.FullName, folderId, resumeFileId, jobPostFileId);
 
-                completionResponse = await aicall.GetCompletionAsync(jobPostFileId, resumeFileId);
+                completionResponse = await aicall.GetCompletionAsync(chatId, jobPostFileId, resumeFileId);
 
                 sw.Stop();
 

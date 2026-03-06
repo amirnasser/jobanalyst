@@ -1,9 +1,11 @@
+BLL\AIResponse.cs
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 
 namespace JobAnalyzer.BLL;
 
 
+[Owned]
 [MessagePackObject]
 
 public class AIResponse

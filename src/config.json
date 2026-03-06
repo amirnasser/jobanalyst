@@ -1,8 +1,9 @@
 {
-    "api_key": "",
-    "base_url" : "",
+    "api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQzMjkzNmZkLTdmNGMtNDU3ZS04YjBkLWZmZGQ4OWUyMzliNyIsImV4cCI6MTc3NDAxMzMyNSwianRpIjoiYjBkNzYyMTAtNDk0ZS00YTgxLWEyYWUtMjA3YzBmMWMxYzMwIn0.Px_lS-XMTocBgdPb5Ci_DB9g7iXO7kvBY2g-TzkhtRY",
+    "base_url" : "http://10.1.20.61:3100",
     "openwebui_foldername": "Jobs",
     "upload_folder": "uploads",
     "allowed_extensions": ["htm", "html", "pdf"],
-    "question": "Based on Resume.pdf, am I a good candidate?return {result:yes/no, reason:...,missing: missing abilities, coverletter: create a cover letter}"
+    "question": "Based on f_resume.pdf, am I a good candidate? return {result:true if good candidate or false, reason:...,missing: missing abilities otherwise '[]', coverletter: always create cover letter , joburl: job url from second source otherwise 'null', company: company name second source otherwise 'null', filename: second source filename otherwise 'null',requirements: job requirements or skills in list of string otherwise '[]' }"
+    
 }

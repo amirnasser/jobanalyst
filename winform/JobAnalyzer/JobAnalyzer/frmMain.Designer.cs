@@ -54,6 +54,7 @@ namespace JobAnalyzer
             btnExport = new ToolStripButton();
             btnShowJob = new ToolStripButton();
             btnLoadJob = new ToolStripButton();
+            btnHtmlCleanUp = new ToolStripButton();
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             openToolStripMenuItem = new ToolStripMenuItem();
@@ -76,7 +77,7 @@ namespace JobAnalyzer
             wv1 = new Microsoft.Web.WebView2.WinForms.WebView2();
             jobObjectBindingSource = new BindingSource(components);
             bgw = new System.ComponentModel.BackgroundWorker();
-            btnHtmlCleanUp = new ToolStripButton();
+            bs = new BindingSource(components);
             toolStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -91,6 +92,7 @@ namespace JobAnalyzer
             ((System.ComponentModel.ISupportInitialize)wv2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)wv1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)jobObjectBindingSource).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)bs).BeginInit();
             SuspendLayout();
             // 
             // toolStrip1
@@ -258,6 +260,17 @@ namespace JobAnalyzer
             btnLoadJob.Size = new Size(23, 22);
             btnLoadJob.Text = "toolStripButton1";
             btnLoadJob.Click += btnLoadJob_Click;
+            // 
+            // btnHtmlCleanUp
+            // 
+            btnHtmlCleanUp.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnHtmlCleanUp.Image = (Image)resources.GetObject("btnHtmlCleanUp.Image");
+            btnHtmlCleanUp.ImageTransparentColor = Color.Magenta;
+            btnHtmlCleanUp.Name = "btnHtmlCleanUp";
+            btnHtmlCleanUp.Size = new Size(23, 22);
+            btnHtmlCleanUp.Text = "toolStripButton1";
+            btnHtmlCleanUp.ToolTipText = "HTML Clean up";
+            btnHtmlCleanUp.Click += btnHtmlCleanUp_Click;
             // 
             // menuStrip1
             // 
@@ -465,17 +478,6 @@ namespace JobAnalyzer
             bgw.DoWork += bgw_DoWork;
             bgw.ProgressChanged += bgw_ProgressChanged;
             // 
-            // btnHtmlCleanUp
-            // 
-            btnHtmlCleanUp.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnHtmlCleanUp.Image = (Image)resources.GetObject("btnHtmlCleanUp.Image");
-            btnHtmlCleanUp.ImageTransparentColor = Color.Magenta;
-            btnHtmlCleanUp.Name = "btnHtmlCleanUp";
-            btnHtmlCleanUp.Size = new Size(23, 22);
-            btnHtmlCleanUp.Text = "toolStripButton1";
-            btnHtmlCleanUp.ToolTipText = "HTML Clean up";
-            btnHtmlCleanUp.Click += btnHtmlCleanUp_Click;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -509,6 +511,7 @@ namespace JobAnalyzer
             ((System.ComponentModel.ISupportInitialize)wv2).EndInit();
             ((System.ComponentModel.ISupportInitialize)wv1).EndInit();
             ((System.ComponentModel.ISupportInitialize)jobObjectBindingSource).EndInit();
+            ((System.ComponentModel.ISupportInitialize)bs).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -567,5 +570,6 @@ namespace JobAnalyzer
         private ToolStripButton btnShowJob;
         private ToolStripButton btnLoadJob;
         private ToolStripButton btnHtmlCleanUp;
+        private BindingSource bs;
     }
 }

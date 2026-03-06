@@ -21,10 +21,9 @@ EXPOSE 5000
 
 # Set environment variables
 ENV FLASK_APP=src/main.py
-ENV FLASK_ENV=production
 
-# Run the Flask application
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"]
+# Run the Flask application with Gunicorn (production WSGI server)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "src.main:app"]
 
 
 

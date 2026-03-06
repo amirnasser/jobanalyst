@@ -1,0 +1,12 @@
+based on f_resume.pdf resume and am I a good candidate 
+generate following json where company is company of posted job, missing_requirements is the array of missing requirements on my resume, job_requirements is the array of job post requirements 
+reason is the reason why I am a good condidate, coverletter generate cover letter for this job post, matched is boolean value if I am a good condidate and jobtitle is the job title of job post
+{
+'company': '',
+'missing_requirements': [],
+'job_requirements': [], 
+'reason': ''
+'coverletter': '',
+'matched': true/false,
+'jobtitle': '' 
+}

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using MessagePack;
+using Serilog;
 
 namespace JobAnalyzer.BLL;
 
@@ -41,9 +42,7 @@ public static class Utilities
     {        
         var doc = new HtmlAgilityPack.HtmlDocument();
         doc.LoadHtml(html);
-
-        return doc.DocumentNode.SelectSingleNode("//body/p/a").Attributes[0].Value;
+        var selectedNode = doc.DocumentNode.SelectSingleNode("//body/p/a");
+        return selectedNode?.Attributes[0]?.Value;
     }
-
-
 }

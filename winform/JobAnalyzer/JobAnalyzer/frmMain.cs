@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -96,48 +97,56 @@ namespace JobAnalyzer
 
         private async void MonitorFolder(string path)
         {
-            FileSystemWatcher watcher = new FileSystemWatcher(path, "*.html");
-
+            FileSystemWatcher watcher = new FileSystemWatcher(path, "*.*");
+            
             watcher.Created += (s, e) =>
             {
-                Thread.Sleep(10000);
-
-                Utilities.Logger.Information($"File `{e.FullPath}` downloaded and start procecessing... ");
-                JobObject job = new JobObject(e.FullPath);
-                using (AICall aicall = new AICall())
+                if (e.FullPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+                    e.FullPath.EndsWith(".job.json", StringComparison.OrdinalIgnoreCase))
                 {
-                    aicall.GetResponseAsync(job);
-                    Utilities.Logger.Information($"Processing of file `{e.FullPath}` done. ");
+
+                    Thread.Sleep(10000);
+
+                    Utilities.Logger.Information($"File `{e.FullPath}` downloaded and start procecessing... ");
+                    JobObject job = new JobObject(e.FullPath);
+                    using (AICall aicall = new AICall())
+                    {
+                        aicall.GetResponseAsync(job);
+                        Utilities.Logger.Information($"Processing of file `{e.FullPath}` done. ");
+                    }
                 }
             };
             watcher.EnableRaisingEvents = true;
             _logger?.Information("Started monitoring folder: {Path}", path);
         }
 
-        private void LoadFilesFromDirectory(string directoryPath)
+        private BLL.Response<List<JobObject>> LoadFilesFromDirectory(string directoryPath)
         {
-
-            lstJobPosts.Items.Clear();
             try
             {
                 filespath = directoryPath;
                 MonitorFolder(directoryPath);
-                var files = Directory.GetFiles(directoryPath, "*.html", SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(directoryPath, "*.html", SearchOption.TopDirectoryOnly).
+                    Concat(Directory.GetFiles(directoryPath, "*.job.json")).ToArray();
+
                 List<ListboxItem> fileList = new List<ListboxItem>();
 
                 List<FileInfo> list = files.Select(l => new FileInfo(l)).OrderByDescending(f => f.Name).ToList();
-                foreach (FileInfo file in list)
-                {
-                    lstJobPosts.Items.Add(new ListboxItem(file));
-                }
-                txtStatus.Text = directoryPath;
-                _logger?.Information("Loaded {Count} html files from {Path}", list.Count, directoryPath);
-                Files = lstJobPosts.Items.Cast<ListboxItem>().ToList();
+                var jobs = files.Select(f => new JobObject(f)).ToList();
+                //foreach (FileInfo file in list)
+                return new BLL.Response<List<JobObject>>(jobs);
+                //{
+                //    lstJobPosts.Items.Add(new ListboxItem(file));
+                //}
+                //txtStatus.Text = directoryPath;
+                //_logger?.Information("Loaded {Count} html files from {Path}", list.Count, directoryPath);
+                //Files = lstJobPosts.Items.Cast<ListboxItem>().ToList();
             }
-            catch (Exception ex)
+            catch (Exception exp)
             {
-                MessageBox.Show($"Error loading files: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _logger?.Error(ex, "Error loading files from directory {Path}", directoryPath);
+                MessageBox.Show($"Error loading files: {exp.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _logger?.Error(exp, "Error loading files from directory {Path}", directoryPath);
+                return new Response<List<JobObject>>(exp);
             }
         }
 
@@ -145,33 +154,41 @@ namespace JobAnalyzer
         {
             if (lstJobPosts.SelectedItem != null)
             {
-                var file = lstJobPosts.SelectedItem as ListboxItem;
-                this.Html = File.ReadAllText(file.File.FullName);
-                var textFile = file.File.FullName.Replace(".html", ".txt");
-                if (!File.Exists(textFile))
-                {
-                    File.WriteAllText(textFile, this.Html.GetText());
-                }
+                var job = lstJobPosts.SelectedItem as JobObject;
+                //if (job != null && job.File.FullName.EndsWith(".job.json"))
+                //{
+                //    var JobFile = JsonConvert.DeserializeObject<BLL.JobFile>(File.ReadAllText(job.File.FullName));
+                //    this.Html = JobFile.Html.HtmlCleanup();
+                //}
+                //else
+                //{
+                //    this.Html = File.ReadAllText(job.File.FullName);
+                //}
+                //var textFile = job.HTML;
+                //if (!File.Exists(textFile))
+                //{
+                //    File.WriteAllText(textFile, this.Html.GetText());
+                //}
 
-                if (string.IsNullOrEmpty(this.Html))
-                {
-                    wv1.NavigateToString("<html><body><h1>No content to display</h1></body></html>");
-                    _logger?.Debug("Selected file {File} contained no HTML content.", file.File.FullName);
-                }
-                else
-                {
+                //if (string.IsNullOrEmpty(this.Html))
+                //{
+                //    wv1.NavigateToString("<html><body><h1>No content to display</h1></body></html>");
+                //    //_logger?.Debug("Selected file {File} contained no HTML content.", job.File.FullName);
+                //}
+                //else
+                //{
                     try
                     {
-                        wv1.NavigateToString(this.Html.Replace("\\n", ""));
+                        wv1.NavigateToString(job.HTML);
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Error displaying HTML content: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        _logger?.Error(ex, "Error rendering HTML content for file {File}", file.File.FullName);
+                        //_logger?.Error(ex, "Error rendering HTML content for file {File}", job.File.FullName);
                     }
-                }
+                //}
 
-                renderJobResultDetail(file.DataFile);
+                renderJobResultDetail(job);
 
 
             }
@@ -221,11 +238,24 @@ namespace JobAnalyzer
         {
             try
             {
+
+                await wv1.EnsureCoreWebView2Async();
+                await wv2.EnsureCoreWebView2Async();
+
                 if (File.Exists("current_folder.txt"))
                 {
-                    LoadFilesFromDirectory(File.ReadAllText("current_folder.txt"));
+                    Response<List<JobObject>> jobs = LoadFilesFromDirectory(File.ReadAllText("current_folder.txt"));
+                    if(jobs.Success)
+                        bs.DataSource = new BindingList<JobObject>(jobs.Result);
+
+                    lstJobPosts.DataSource = bs;
+                    lstJobPosts.DisplayMember = "FileName";
+                    
                 }
-                else { OpenFolder(); }
+                else 
+                { 
+                    OpenFolder(); 
+                }
 
 
                 //GetIconBitmap(PackIconMaterialDesignKind.ImportExportSharp, 16).Save("import.png", ImageFormat.Png);
@@ -239,8 +269,7 @@ namespace JobAnalyzer
                 //btnOpen.Image = GetIconBitmap(PackIconMaterialDesignKind.FolderOpenOutline, 16);
                 //btnCoverLetter.Image = GetIconBitmap(PackIconMaterialDesignKind.Newspaper, 16);
                 //btnProcess.Image = GetIconBitmap(PackIconMaterialDesignKind.PlayArrow, 16);
-                await wv1.EnsureCoreWebView2Async();
-                await wv2.EnsureCoreWebView2Async();
+
 
                 //if (cmbModels.Items.Contains("gpt-oss:20b"))
                 //{
@@ -334,19 +363,33 @@ namespace JobAnalyzer
                 this.UseWaitCursor = true;
                 var file = lstJobPosts.SelectedItem as ListboxItem;
 
-                if (file != null)
-                {
-                    var job = new JobObject(file.File.FullName);
+                JobObject job = (JobObject)bs.Current;
+                //if (file != null)
+                //{
+                //    if (file.File.Name.EndsWith(".html"))
+                //    {
+                //        job = new JobObject(file.File.FullName);
+                //    }
+                //    else if (file.File.Name.EndsWith(".job.json"))
+                //    {
+                //        JobFile jobFile = JsonConvert.DeserializeObject<JobFile>(File.ReadAllText(file.File.FullName));
+                //        job = new JobObject(filespath, jobFile);
+                //    }
+                //    else
+                //    {
+                //        job = new JobObject();
+                //    }
 
-                    using (AICall aicall = new AICall())
-                    {
-                        var response = await aicall.GetResponseAsync(job);
-                        if (response != null)
-                        {
-                            Render(response);
-                        }
-                    }
-                }
+                //    using (AICall aicall = new AICall())
+                //    {
+                //        var response = await aicall.GetResponseAsync(job);
+                //        if (response != null)
+                //        {
+                //            Render(response);
+                //        }
+                //    }
+                //}
+                Render(job.AIResponse);
                 txtStatus.Text = $"Data file written.";
                 this.UseWaitCursor = false;
                 //this.Enabled = true;
@@ -364,12 +407,12 @@ namespace JobAnalyzer
             }
         }
 
-        private string Render(AIResponse response)
+        private string Render(AIResponse aiResponse)
         {
             try
             {
                 Template template = Template.Parse(File.ReadAllText("Template.html"));
-                string result = template.Render(new { model = response });
+                string result = template.Render(new { model = aiResponse });
 
                 wv2.NavigateToString(result);
                 return result;
@@ -377,7 +420,7 @@ namespace JobAnalyzer
             catch (Exception exp)
             {
                 _logger?.Error(exp, "Error rendering template");
-                throw exp;
+                //throw exp;
                 return exp.Message;
             }
         }
@@ -418,49 +461,50 @@ namespace JobAnalyzer
             }
         }
 
-        private void renderJobResultDetail(string jsonfile)
+        private void renderJobResultDetail(JobObject job)
         {
-            if (lstJobPosts.SelectedItem != null)
-            {
-                if (File.Exists(jsonfile))
-                {
-                    var json = File.ReadAllText(jsonfile);
-                    rchJson.Text = json;
+            Render(job.AIResponse);
+            //if (lstJobPosts.SelectedItem != null)
+            //{
+            //    if (File.Exists(jsonfile))
+            //    {
+            //        var json = File.ReadAllText(jsonfile);
+            //        rchJson.Text = json;
 
-                    try
-                    {
-                        aiResponse = JsonConvert.DeserializeObject<AIResponse>(json);
-                        var dir = new FileInfo(jsonfile).Name.Replace(".json", "");
-                        if (Directory.Exists(Path.Combine(filespath, dir)))
-                        {
-                            aiResponse.applied = true;
-                        }
-                        Render(aiResponse);
+            //        try
+            //        {
+            //            aiResponse = JsonConvert.DeserializeObject<AIResponse>(json);
+            //            var dir = new FileInfo(jsonfile).Name.Replace(".json", "");
+            //            if (Directory.Exists(Path.Combine(filespath, dir)))
+            //            {
+            //                aiResponse.applied = true;
+            //            }
+            //            Render(aiResponse);
 
-                        if (string.IsNullOrEmpty(aiResponse.reason) &&
-                            string.IsNullOrEmpty(aiResponse.coverletter))
-                        {
-                            aiResponse.pre = this.PrettyJson(json);
-                            Render(aiResponse);
-                        }
+            //            if (string.IsNullOrEmpty(aiResponse.reason) &&
+            //                string.IsNullOrEmpty(aiResponse.coverletter))
+            //            {
+            //                aiResponse.pre = this.PrettyJson(json);
+            //                Render(aiResponse);
+            //            }
 
-                    }
-                    catch (Exception exp)
-                    {
+            //        }
+            //        catch (Exception exp)
+            //        {
 
-                    }
+            //        }
 
-                    _logger?.Information("Rendered job result detail from {JsonFile}", jsonfile);
-                }
-                else
-                {
-                    rchJson.Text = "";
-                    Template template = Template.Parse("<html></html>");
-                    var result = template.Render(new { });
-                    wv2.NavigateToString(result);
-                    _logger?.Debug("No JSON file found for {JsonFile}", jsonfile);
-                }
-            }
+            //        _logger?.Information("Rendered job result detail from {JsonFile}", jsonfile);
+            //    }
+            //    else
+            //    {
+            //        rchJson.Text = "";
+            //        Template template = Template.Parse("<html></html>");
+            //        var result = template.Render(new { });
+            //        wv2.NavigateToString(result);
+            //        _logger?.Debug("No JSON file found for {JsonFile}", jsonfile);
+            //    }
+            //}
         }
 
         private async void btnProcessFile_Click(object sender, EventArgs e)
@@ -499,6 +543,8 @@ namespace JobAnalyzer
         {
             if (lstJobPosts.SelectedItem != null)
             {
+                JobObject current = bs.Current as JobObject;
+
                 var newfolder = Path.Combine(filespath, lstJobPosts.SelectedItem.ToString());
 
                 if (!Directory.Exists(newfolder))
@@ -509,9 +555,9 @@ namespace JobAnalyzer
                 var jsonfile = Path.Combine(filespath, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json"));
                 if (File.Exists(jsonfile))
                 {
-                    File.Copy(jsonfile, Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json")), true);
-                    File.Copy(Path.Combine(filespath, lstJobPosts.SelectedItem.ToString()), Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString()), true);
-                    File.WriteAllText(Path.Combine(newfolder, $"{new DirectoryInfo(newfolder).Name}_processed.html"), Render(aiResponse));
+                    //File.Copy(jsonfile, Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json")), true);
+                    //File.Copy(Path.Combine(filespath, lstJobPosts.SelectedItem.ToString()), Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString()), true);
+                    File.WriteAllText(Path.Combine(newfolder, $"{new DirectoryInfo(newfolder).Name}_processed.html"), Render(current.AIResponse));
                     _logger?.Information("Created folder {Folder} and copied processed files.", newfolder);
                 }
 

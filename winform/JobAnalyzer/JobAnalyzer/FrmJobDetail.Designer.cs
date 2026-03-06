@@ -33,8 +33,10 @@ namespace JobAnalyzer
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmJobDetail));
             pnlForm = new Panel();
-            txtCompany = new TextBox();
+            txtJobTitle = new TextBox();
             bs = new BindingSource(components);
+            label9 = new Label();
+            txtCompany = new TextBox();
             txtWhen = new TextBox();
             label13 = new Label();
             txtWhere = new TextBox();
@@ -72,6 +74,9 @@ namespace JobAnalyzer
             btnOpenJson = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
             btnExport = new ToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            btnLoad = new ToolStripButton();
+            btnSaveAll = new ToolStripButton();
             imageList1 = new ImageList(components);
             statusStrip1 = new StatusStrip();
             txtStatus = new ToolStripStatusLabel();
@@ -95,6 +100,8 @@ namespace JobAnalyzer
             // 
             // pnlForm
             // 
+            pnlForm.Controls.Add(txtJobTitle);
+            pnlForm.Controls.Add(label9);
             pnlForm.Controls.Add(txtCompany);
             pnlForm.Controls.Add(txtWhen);
             pnlForm.Controls.Add(label13);
@@ -124,28 +131,47 @@ namespace JobAnalyzer
             pnlForm.Controls.Add(lblCompany);
             pnlForm.Location = new Point(270, 48);
             pnlForm.Name = "pnlForm";
-            pnlForm.Size = new Size(358, 625);
+            pnlForm.Size = new Size(358, 680);
             pnlForm.TabIndex = 1;
             // 
-            // txtCompany
+            // txtJobTitle
             // 
-            txtCompany.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtCompany.DataBindings.Add(new Binding("Text", bs, "CompanyName", true));
-            txtCompany.Location = new Point(12, 29);
-            txtCompany.Name = "txtCompany";
-            txtCompany.Size = new Size(330, 23);
-            txtCompany.TabIndex = 1;
+            txtJobTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtJobTitle.DataBindings.Add(new Binding("Text", bs, "JobTitle", true));
+            txtJobTitle.Enabled = false;
+            txtJobTitle.Location = new Point(10, 29);
+            txtJobTitle.Name = "txtJobTitle";
+            txtJobTitle.Size = new Size(330, 23);
+            txtJobTitle.TabIndex = 31;
             // 
             // bs
             // 
             bs.DataSource = typeof(JobObject);
             bs.CurrentChanged += bs_CurrentChanged;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(12, 11);
+            label9.Name = "label9";
+            label9.Size = new Size(51, 15);
+            label9.TabIndex = 30;
+            label9.Text = "Job Title";
+            // 
+            // txtCompany
+            // 
+            txtCompany.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtCompany.DataBindings.Add(new Binding("Text", bs, "CompanyName", true));
+            txtCompany.Location = new Point(10, 79);
+            txtCompany.Name = "txtCompany";
+            txtCompany.Size = new Size(330, 23);
+            txtCompany.TabIndex = 1;
+            // 
             // txtWhen
             // 
             txtWhen.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtWhen.DataBindings.Add(new Binding("Text", bs, "When", true));
-            txtWhen.Location = new Point(14, 588);
+            txtWhen.Location = new Point(12, 638);
             txtWhen.Name = "txtWhen";
             txtWhen.Size = new Size(328, 23);
             txtWhen.TabIndex = 29;
@@ -153,7 +179,7 @@ namespace JobAnalyzer
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(14, 570);
+            label13.Location = new Point(12, 620);
             label13.Name = "label13";
             label13.Size = new Size(38, 15);
             label13.TabIndex = 28;
@@ -163,7 +189,7 @@ namespace JobAnalyzer
             // 
             txtWhere.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtWhere.DataBindings.Add(new Binding("Text", bs, "Where", true));
-            txtWhere.Location = new Point(12, 544);
+            txtWhere.Location = new Point(10, 594);
             txtWhere.Name = "txtWhere";
             txtWhere.Size = new Size(330, 23);
             txtWhere.TabIndex = 27;
@@ -171,7 +197,7 @@ namespace JobAnalyzer
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(12, 526);
+            label12.Location = new Point(10, 576);
             label12.Name = "label12";
             label12.Size = new Size(41, 15);
             label12.TabIndex = 26;
@@ -182,7 +208,7 @@ namespace JobAnalyzer
             cmbLoaction.DataBindings.Add(new Binding("Text", bs, "JobLocation", true));
             cmbLoaction.FormattingEnabled = true;
             cmbLoaction.Items.AddRange(new object[] { JobLocation.None, JobLocation.Remote, JobLocation.Hybrid, JobLocation.InOffice });
-            cmbLoaction.Location = new Point(122, 500);
+            cmbLoaction.Location = new Point(120, 550);
             cmbLoaction.Name = "cmbLoaction";
             cmbLoaction.Size = new Size(99, 23);
             cmbLoaction.TabIndex = 13;
@@ -192,7 +218,7 @@ namespace JobAnalyzer
             cmbJobType.DataBindings.Add(new Binding("Text", bs, "JobType", true));
             cmbJobType.FormattingEnabled = true;
             cmbJobType.Items.AddRange(new object[] { JobType.None, JobType.Fulltime, JobType.Parttime, JobType.Contract });
-            cmbJobType.Location = new Point(14, 500);
+            cmbJobType.Location = new Point(12, 550);
             cmbJobType.Name = "cmbJobType";
             cmbJobType.Size = new Size(99, 23);
             cmbJobType.TabIndex = 12;
@@ -201,7 +227,7 @@ namespace JobAnalyzer
             // 
             txtSalary.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtSalary.DataBindings.Add(new Binding("Text", bs, "SalaryRange", true));
-            txtSalary.Location = new Point(13, 471);
+            txtSalary.Location = new Point(11, 521);
             txtSalary.Name = "txtSalary";
             txtSalary.Size = new Size(329, 23);
             txtSalary.TabIndex = 11;
@@ -209,7 +235,7 @@ namespace JobAnalyzer
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(13, 453);
+            label11.Location = new Point(11, 503);
             label11.Name = "label11";
             label11.Size = new Size(74, 15);
             label11.TabIndex = 22;
@@ -218,7 +244,8 @@ namespace JobAnalyzer
             // chkApplied
             // 
             chkApplied.AutoSize = true;
-            chkApplied.Location = new Point(139, 431);
+            chkApplied.DataBindings.Add(new Binding("CheckState", bs, "Applied", true));
+            chkApplied.Location = new Point(137, 481);
             chkApplied.Name = "chkApplied";
             chkApplied.Size = new Size(67, 19);
             chkApplied.TabIndex = 10;
@@ -228,7 +255,8 @@ namespace JobAnalyzer
             // chkMatched
             // 
             chkMatched.AutoSize = true;
-            chkMatched.Location = new Point(13, 431);
+            chkMatched.DataBindings.Add(new Binding("CheckState", bs, "Matched", true));
+            chkMatched.Location = new Point(11, 481);
             chkMatched.Name = "chkMatched";
             chkMatched.Size = new Size(73, 19);
             chkMatched.TabIndex = 9;
@@ -239,7 +267,7 @@ namespace JobAnalyzer
             // 
             txtMissing.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtMissing.DataBindings.Add(new Binding("Text", bs, "MissingRequirements", true));
-            txtMissing.Location = new Point(12, 402);
+            txtMissing.Location = new Point(10, 452);
             txtMissing.Name = "txtMissing";
             txtMissing.Size = new Size(330, 23);
             txtMissing.TabIndex = 8;
@@ -248,7 +276,7 @@ namespace JobAnalyzer
             // 
             txtRequirements.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtRequirements.DataBindings.Add(new Binding("Text", bs, "JobRequirements", true));
-            txtRequirements.Location = new Point(12, 358);
+            txtRequirements.Location = new Point(10, 408);
             txtRequirements.Name = "txtRequirements";
             txtRequirements.Size = new Size(330, 23);
             txtRequirements.TabIndex = 7;
@@ -257,7 +285,7 @@ namespace JobAnalyzer
             // 
             txtCoverletter.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtCoverletter.DataBindings.Add(new Binding("Text", bs, "Coverletter", true));
-            txtCoverletter.Location = new Point(12, 249);
+            txtCoverletter.Location = new Point(10, 299);
             txtCoverletter.Multiline = true;
             txtCoverletter.Name = "txtCoverletter";
             txtCoverletter.Size = new Size(330, 88);
@@ -267,7 +295,7 @@ namespace JobAnalyzer
             // 
             txtReason.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtReason.DataBindings.Add(new Binding("Text", bs, "Reason", true));
-            txtReason.Location = new Point(12, 205);
+            txtReason.Location = new Point(10, 255);
             txtReason.Name = "txtReason";
             txtReason.Size = new Size(330, 23);
             txtReason.TabIndex = 5;
@@ -275,7 +303,7 @@ namespace JobAnalyzer
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(12, 384);
+            label7.Location = new Point(10, 434);
             label7.Name = "label7";
             label7.Size = new Size(124, 15);
             label7.TabIndex = 15;
@@ -284,7 +312,7 @@ namespace JobAnalyzer
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(12, 340);
+            label6.Location = new Point(10, 390);
             label6.Name = "label6";
             label6.Size = new Size(101, 15);
             label6.TabIndex = 13;
@@ -293,7 +321,7 @@ namespace JobAnalyzer
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(12, 231);
+            label5.Location = new Point(10, 281);
             label5.Name = "label5";
             label5.Size = new Size(71, 15);
             label5.TabIndex = 11;
@@ -302,7 +330,7 @@ namespace JobAnalyzer
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(12, 187);
+            label4.Location = new Point(10, 237);
             label4.Name = "label4";
             label4.Size = new Size(45, 15);
             label4.TabIndex = 9;
@@ -312,7 +340,7 @@ namespace JobAnalyzer
             // 
             txtJobPost.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtJobPost.DataBindings.Add(new Binding("Text", bs, "JobPostUrl", true));
-            txtJobPost.Location = new Point(12, 161);
+            txtJobPost.Location = new Point(10, 211);
             txtJobPost.Name = "txtJobPost";
             txtJobPost.Size = new Size(330, 23);
             txtJobPost.TabIndex = 4;
@@ -320,7 +348,7 @@ namespace JobAnalyzer
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(12, 143);
+            label3.Location = new Point(10, 193);
             label3.Name = "label3";
             label3.Size = new Size(69, 15);
             label3.TabIndex = 7;
@@ -329,7 +357,7 @@ namespace JobAnalyzer
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSave.Location = new Point(318, 1187);
+            btnSave.Location = new Point(318, 1242);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 23);
             btnSave.TabIndex = 6;
@@ -340,7 +368,7 @@ namespace JobAnalyzer
             // 
             txtCompanyLinkedIn.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtCompanyLinkedIn.DataBindings.Add(new Binding("Text", bs, "CompanyLinkedIn", true));
-            txtCompanyLinkedIn.Location = new Point(12, 117);
+            txtCompanyLinkedIn.Location = new Point(10, 167);
             txtCompanyLinkedIn.Name = "txtCompanyLinkedIn";
             txtCompanyLinkedIn.Size = new Size(330, 23);
             txtCompanyLinkedIn.TabIndex = 3;
@@ -348,7 +376,7 @@ namespace JobAnalyzer
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(12, 99);
+            label2.Location = new Point(10, 149);
             label2.Name = "label2";
             label2.Size = new Size(107, 15);
             label2.TabIndex = 4;
@@ -358,7 +386,7 @@ namespace JobAnalyzer
             // 
             txtCompanyUrl.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtCompanyUrl.DataBindings.Add(new Binding("Text", bs, "CompanyUrl", true));
-            txtCompanyUrl.Location = new Point(12, 73);
+            txtCompanyUrl.Location = new Point(10, 123);
             txtCompanyUrl.Name = "txtCompanyUrl";
             txtCompanyUrl.Size = new Size(330, 23);
             txtCompanyUrl.TabIndex = 2;
@@ -366,7 +394,7 @@ namespace JobAnalyzer
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(12, 55);
+            label1.Location = new Point(12, 105);
             label1.Name = "label1";
             label1.Size = new Size(83, 15);
             label1.TabIndex = 2;
@@ -375,7 +403,7 @@ namespace JobAnalyzer
             // lblCompany
             // 
             lblCompany.AutoSize = true;
-            lblCompany.Location = new Point(12, 11);
+            lblCompany.Location = new Point(10, 61);
             lblCompany.Name = "lblCompany";
             lblCompany.Size = new Size(59, 15);
             lblCompany.TabIndex = 0;
@@ -383,7 +411,7 @@ namespace JobAnalyzer
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, btnChrome, btnOpen, btnOpenJson, toolStripSeparator2, btnExport });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, btnChrome, btnOpen, btnOpenJson, toolStripSeparator2, btnExport, toolStripSeparator3, btnLoad, btnSaveAll });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1184, 25);
@@ -485,6 +513,33 @@ namespace JobAnalyzer
             btnExport.Text = "toolStripButton1";
             btnExport.ToolTipText = "Export Data File";
             btnExport.Click += btnExport_Click;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(6, 25);
+            // 
+            // btnLoad
+            // 
+            btnLoad.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnLoad.Image = (Image)resources.GetObject("btnLoad.Image");
+            btnLoad.ImageTransparentColor = Color.Magenta;
+            btnLoad.Name = "btnLoad";
+            btnLoad.Size = new Size(23, 22);
+            btnLoad.Text = "toolStripButton1";
+            btnLoad.ToolTipText = "Load Data";
+            btnLoad.Click += btnLoad_Click;
+            // 
+            // btnSaveAll
+            // 
+            btnSaveAll.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnSaveAll.Image = (Image)resources.GetObject("btnSaveAll.Image");
+            btnSaveAll.ImageTransparentColor = Color.Magenta;
+            btnSaveAll.Name = "btnSaveAll";
+            btnSaveAll.Size = new Size(23, 22);
+            btnSaveAll.Text = "toolStripButton1";
+            btnSaveAll.ToolTipText = "Save All";
+            btnSaveAll.Click += btnSaveAll_Click;
             // 
             // imageList1
             // 
@@ -665,5 +720,10 @@ namespace JobAnalyzer
         private TextBox txtSearch;
         private Label label8;
         private ToolStripButton btnExport;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton btnSaveAll;
+        private ToolStripButton btnLoad;
+        private TextBox txtJobTitle;
+        private Label label9;
     }
 }

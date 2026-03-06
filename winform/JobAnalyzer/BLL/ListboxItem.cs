@@ -8,7 +8,7 @@ public class ListboxItem
     }
     public FileInfo File { get; set; }
 
-    public string DataFile => File.FullName.Replace(".html", ".json");
+    public string DataFile => File.FullName.EndsWith(".html") ? File.FullName.Replace(".html", ".json") : File.FullName.Replace(".job.json", ".json");
     public string ShortName => File.FullName.Replace(".html", "");
 
     public override string ToString()
