@@ -1,15 +1,15 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using ImageProcessor;
 using JobAnalyzer.BLL;
 using JobAnalyzer.Data;
 using MahApps.Metro.IconPacks;
 using MessagePack;
-
-//using MahApps.Metro.IconPacks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Scriban;
@@ -23,7 +23,6 @@ namespace JobAnalyzer
         {
             try
             {
-                // Initialize Serilog to write rolling daily files under a "logs" folder in the application base directory.
                 var logsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
                 Directory.CreateDirectory(logsFolder);
 
@@ -32,10 +31,8 @@ namespace JobAnalyzer
             }
             catch (Exception initEx)
             {
-                // Avoid throwing from static ctor; swallow and continue (app will still run without file logging).
                 try
                 {
-                    // If logger init failed, write to Debug output at least.
                     Debug.WriteLine($"Failed to initialize logger: {initEx}");
                 }
                 catch { }
@@ -44,7 +41,9 @@ namespace JobAnalyzer
         public JobObject CurrentJob { get; set; } = new JobObject();
         public List<JobObject> JobList = new List<JobObject>();
         private List<ListboxItem> Files = new List<ListboxItem>();
-        private string filespath = "";
+
+        public string JobFilesPath { get; set; }
+
         private string tmpFilename;
         private ModelResponse modelResponse;
         AIResponse aiResponse;
@@ -70,24 +69,22 @@ namespace JobAnalyzer
 
                 if (Directory.Exists(path))
                 {
-                    LoadFilesFromDirectory(path);
+                    JobFilesPath = path;
+                    LoadFilesFromDirectory();
                     File.WriteAllText("current_folder.txt", path);
-
-                    _logger?.Information("Opened folder: {Path}", path);
                 }
                 else
                 {
-                    MessageBox.Show("The selected path is invalid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     _logger?.Warning("OpenFolder: selected path is invalid: {Path}", path);
                 }
 
             }
         }
 
-        private void RefreshFiles()
+        public void RefreshFiles()
         {
-            LoadFilesFromDirectory(filespath);
-            _logger?.Debug("RefreshFiles called for path {Path}", filespath);
+            LoadFilesFromDirectory();
+            //_logger?.Debug("RefreshFiles called for path {Path}", JobFilesPath);
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -98,7 +95,7 @@ namespace JobAnalyzer
         private async void MonitorFolder(string path)
         {
             FileSystemWatcher watcher = new FileSystemWatcher(path, "*.*");
-            
+
             watcher.Created += (s, e) =>
             {
                 if (e.FullPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
@@ -120,77 +117,35 @@ namespace JobAnalyzer
             _logger?.Information("Started monitoring folder: {Path}", path);
         }
 
-        private BLL.Response<List<JobObject>> LoadFilesFromDirectory(string directoryPath)
+        private BLL.Response<List<JobObject>> LoadFilesFromDirectory()
         {
             try
             {
-                filespath = directoryPath;
-                MonitorFolder(directoryPath);
-                var files = Directory.GetFiles(directoryPath, "*.html", SearchOption.TopDirectoryOnly).
-                    Concat(Directory.GetFiles(directoryPath, "*.job.json")).ToArray();
-
-                List<ListboxItem> fileList = new List<ListboxItem>();
-
-                List<FileInfo> list = files.Select(l => new FileInfo(l)).OrderByDescending(f => f.Name).ToList();
+                MonitorFolder(JobFilesPath);
+                var files = Directory.GetFiles(JobFilesPath, "*.html", SearchOption.TopDirectoryOnly).
+                    Concat(Directory.GetFiles(JobFilesPath, "*.job.json")).ToArray();
                 var jobs = files.Select(f => new JobObject(f)).ToList();
-                //foreach (FileInfo file in list)
+
+                bs.DataSource = new BindingList<JobObject>(jobs);
+                lstJobPosts.DataSource = bs;
+                
                 return new BLL.Response<List<JobObject>>(jobs);
-                //{
-                //    lstJobPosts.Items.Add(new ListboxItem(file));
-                //}
-                //txtStatus.Text = directoryPath;
-                //_logger?.Information("Loaded {Count} html files from {Path}", list.Count, directoryPath);
-                //Files = lstJobPosts.Items.Cast<ListboxItem>().ToList();
             }
             catch (Exception exp)
             {
-                MessageBox.Show($"Error loading files: {exp.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _logger?.Error(exp, "Error loading files from directory {Path}", directoryPath);
+                //MessageBox.Show($"Error loading files: {exp.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _logger?.Error(exp, "Error loading files from directory {Path}", JobFilesPath);
                 return new Response<List<JobObject>>(exp);
             }
         }
 
         private async void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lstJobPosts.SelectedItem != null)
-            {
-                var job = lstJobPosts.SelectedItem as JobObject;
-                //if (job != null && job.File.FullName.EndsWith(".job.json"))
-                //{
-                //    var JobFile = JsonConvert.DeserializeObject<BLL.JobFile>(File.ReadAllText(job.File.FullName));
-                //    this.Html = JobFile.Html.HtmlCleanup();
-                //}
-                //else
-                //{
-                //    this.Html = File.ReadAllText(job.File.FullName);
-                //}
-                //var textFile = job.HTML;
-                //if (!File.Exists(textFile))
-                //{
-                //    File.WriteAllText(textFile, this.Html.GetText());
-                //}
-
-                //if (string.IsNullOrEmpty(this.Html))
-                //{
-                //    wv1.NavigateToString("<html><body><h1>No content to display</h1></body></html>");
-                //    //_logger?.Debug("Selected file {File} contained no HTML content.", job.File.FullName);
-                //}
-                //else
-                //{
-                    try
-                    {
-                        wv1.NavigateToString(job.HTML);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error displaying HTML content: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        //_logger?.Error(ex, "Error rendering HTML content for file {File}", job.File.FullName);
-                    }
-                //}
-
-                renderJobResultDetail(job);
-
-
+            CurrentJob = bs.Current as JobObject;
+            if (CurrentJob != null && !string.IsNullOrEmpty(CurrentJob.HTML))
+            {                
+                wv1.NavigateToString(CurrentJob.HTML);
+                renderJobResultDetail(CurrentJob);
             }
         }
 
@@ -238,23 +193,21 @@ namespace JobAnalyzer
         {
             try
             {
-
                 await wv1.EnsureCoreWebView2Async();
                 await wv2.EnsureCoreWebView2Async();
 
                 if (File.Exists("current_folder.txt"))
                 {
-                    Response<List<JobObject>> jobs = LoadFilesFromDirectory(File.ReadAllText("current_folder.txt"));
-                    if(jobs.Success)
-                        bs.DataSource = new BindingList<JobObject>(jobs.Result);
-
-                    lstJobPosts.DataSource = bs;
-                    lstJobPosts.DisplayMember = "FileName";
-                    
+                    JobFilesPath = File.ReadAllText("current_folder.txt");
                 }
-                else 
-                { 
-                    OpenFolder(); 
+
+                if (!string.IsNullOrEmpty(JobFilesPath) && Directory.Exists(JobFilesPath))
+                {
+                    LoadFilesFromDirectory();
+                }
+                else
+                {
+                    OpenFolder();
                 }
 
 
@@ -361,7 +314,7 @@ namespace JobAnalyzer
                 //this.Enabled = false;
                 txtStatus.Text = "Please wait, Processing";
                 this.UseWaitCursor = true;
-                var file = lstJobPosts.SelectedItem as ListboxItem;
+                
 
                 JobObject job = (JobObject)bs.Current;
                 //if (file != null)
@@ -389,7 +342,7 @@ namespace JobAnalyzer
                 //        }
                 //    }
                 //}
-                Render(job.AIResponse);
+                //Render(job.AIResponse);
                 txtStatus.Text = $"Data file written.";
                 this.UseWaitCursor = false;
                 //this.Enabled = true;
@@ -463,7 +416,7 @@ namespace JobAnalyzer
 
         private void renderJobResultDetail(JobObject job)
         {
-            Render(job.AIResponse);
+            //Render(job.AIResponse);
             //if (lstJobPosts.SelectedItem != null)
             //{
             //    if (File.Exists(jsonfile))
@@ -512,7 +465,7 @@ namespace JobAnalyzer
 
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        public void btnRefresh_Click(object sender, EventArgs e)
         {
             RefreshFiles();
         }
@@ -545,19 +498,19 @@ namespace JobAnalyzer
             {
                 JobObject current = bs.Current as JobObject;
 
-                var newfolder = Path.Combine(filespath, lstJobPosts.SelectedItem.ToString());
+                var newfolder = Path.Combine(JobFilesPath, lstJobPosts.SelectedItem.ToString());
 
                 if (!Directory.Exists(newfolder))
                 {
                     Directory.CreateDirectory(newfolder);
                 }
 
-                var jsonfile = Path.Combine(filespath, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json"));
+                var jsonfile = Path.Combine(JobFilesPath, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json"));
                 if (File.Exists(jsonfile))
                 {
                     //File.Copy(jsonfile, Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json")), true);
                     //File.Copy(Path.Combine(filespath, lstJobPosts.SelectedItem.ToString()), Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString()), true);
-                    File.WriteAllText(Path.Combine(newfolder, $"{new DirectoryInfo(newfolder).Name}_processed.html"), Render(current.AIResponse));
+                    //File.WriteAllText(Path.Combine(newfolder, $"{new DirectoryInfo(newfolder).Name}_processed.html"), Render(current.AIResponse));
                     _logger?.Information("Created folder {Folder} and copied processed files.", newfolder);
                 }
 
@@ -571,14 +524,9 @@ namespace JobAnalyzer
         {
             if (lstJobPosts.SelectedItem != null)
             {
-                File.Delete((lstJobPosts.SelectedItem as ListboxItem).File.FullName);
-                File.Delete((lstJobPosts.SelectedItem as ListboxItem).File.FullName.Replace(".html", ".json"));
-                if (Directory.Exists(Path.Combine(filespath, (lstJobPosts.SelectedItem as ListboxItem).ToString())))
-                {
-                    Directory.Delete(Path.Combine(filespath, (lstJobPosts.SelectedItem as ListboxItem).ToString()));
-                }
-                RefreshFiles();
-                _logger?.Information("Deleted selected job post and associated files.");
+                var current = bs.Current as JobObject;
+                bs.Remove(current);
+                bs.EndEdit();
             }
         }
 
@@ -638,8 +586,8 @@ namespace JobAnalyzer
             if (lstJobPosts.Items.Count >= 0)
             {
 
-                List<FileInfo> files = Directory.GetFiles(filespath, "*.html", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
-                List<FileInfo> processed = Directory.GetFiles(filespath, "*.json", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+                List<FileInfo> files = Directory.GetFiles(JobFilesPath, "*.html", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+                List<FileInfo> processed = Directory.GetFiles(JobFilesPath, "*.json", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
 
 
                 if (files.Count > processed.Count)
@@ -676,7 +624,7 @@ namespace JobAnalyzer
                     {
                         using (AICall aicall = new AICall())
                         {
-                            await new AICall().GetResponseAsync(Path.Combine(filespath, file));
+                            await new AICall().GetResponseAsync(Path.Combine(JobFilesPath, file));
                         }
                     }
                     catch (Exception exp)
@@ -699,7 +647,7 @@ namespace JobAnalyzer
         private void CheckAndInsertData(ListboxItem item)
         {
             var url = FindJobPostUrl(item);
-            var job = Repository.FindJobsByUrl(new Uri(url).AbsolutePath);
+            var job = Repository.FindJobsByUrl((new Uri(url)).AbsolutePath);
             if (job == null)
             {
                 // there is no job
@@ -737,7 +685,7 @@ namespace JobAnalyzer
 
             foreach (string file in exp)
             {
-                var item = await ProcessJobPostAsync(Path.Combine(filespath, file));
+                var item = await ProcessJobPostAsync(Path.Combine(JobFilesPath, file));
             }
             _logger?.Information("Background worker completed processing of {Count} files", exp?.Count ?? 0);
         }
@@ -800,7 +748,7 @@ namespace JobAnalyzer
 
         private void btnShowJob_Click(object sender, EventArgs e)
         {
-            FrmJobDetail frmJobDetail = new FrmJobDetail(filespath);
+            FrmJobDetail frmJobDetail = new FrmJobDetail() {  };
             frmJobDetail.Show();
         }
 
@@ -829,6 +777,94 @@ namespace JobAnalyzer
             HtmlCleanerAndBeautifier cleaner = new HtmlCleanerAndBeautifier();
             var cleaned = cleaner.CleanupAndBeautifyAsync(html).Result;
         }
+
+        private void mnuSortAsc_Click(object sender, EventArgs e)
+        {            
+            bs.DataSource = new BindingList<JobObject>(((BindingList<JobObject>)bs.DataSource).OrderBy(j => j.CompanyName).ToList());
+            lstJobPosts.SelectedIndex = 0;
+        }
+
+        private void mnuDescending_Click(object sender, EventArgs e)
+        {
+            bs.DataSource = new BindingList<JobObject>(((BindingList<JobObject>)bs.DataSource).OrderByDescending(j => j.CompanyName).ToList());
+            lstJobPosts.SelectedIndex = 0;
+        }
+
+        public void SaveAllImages()
+        {
+            string path = @"d:\icons\24\";
+            Directory.CreateDirectory(path);
+            var names = typeof(PackIconMaterialDesignKind).GetEnumNames();
+            progress.Maximum = names.Length;
+            foreach (var name in names)
+            {
+                var file = Path.Combine(path, $"{name}.png");
+                GetIconBitmap(Enum.Parse<PackIconMaterialDesignKind>(name), 24).Save(file, ImageFormat.Png);
+                if (progress.Value < names.Length)
+                {
+                    progress.Value++;
+                }
+            }
+
+            //GetIconBitmap(PackIconMaterialDesignKind.ImportExportSharp, 16).Save("import.png", ImageFormat.Png);
+        }
+
+        public void ResizeAll()
+        {
+            var images = Directory.GetFiles(@"D:\SVGs\feathericons\","*.png", searchOption: SearchOption.TopDirectoryOnly);
+            foreach (var image in images)
+            {
+                Create16x16Icon(image);
+            }
+        }
+
+        public static void Create16x16Icon(string inputPath)
+        {
+            // Load original image bytes
+            byte[] photoBytes = File.ReadAllBytes(inputPath);
+
+            using (var inStream = new MemoryStream(photoBytes))
+            using (var outStream = new MemoryStream())
+            using (var imageFactory = new ImageFactory(preserveExifData: false))
+            {
+                // Load image
+                imageFactory.Load(inStream);
+
+                int originalWidth = imageFactory.Image.Width;
+                int originalHeight = imageFactory.Image.Height;
+
+                // Determine scale
+                float scale = 16f / Math.Max(originalWidth, originalHeight);
+
+                int newWidth = (int)(originalWidth * scale);
+                int newHeight = (int)(originalHeight * scale);
+
+                // Resize while keeping aspect ratio
+                imageFactory.Resize(new Size(newWidth, newHeight));
+
+                // Create 16x16 canvas
+                using (var canvas = new Bitmap(16, 16))
+                using (var g = Graphics.FromImage(canvas))
+                {
+                    g.Clear(System.Drawing.Color.Transparent);
+
+                    // Center the resized image
+                    int x = (16 - newWidth) / 2;
+                    int y = (16 - newHeight) / 2;
+
+                    g.DrawImage(imageFactory.Image, x, y, newWidth, newHeight);
+
+                    // Save final PNG
+                    string outputPath = Path.Combine(
+                        Path.GetDirectoryName(inputPath),
+                        Path.GetFileNameWithoutExtension(inputPath) + "_16.png"
+                    );
+
+                    canvas.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                }
+            }
+        }
+
     }
 }
 

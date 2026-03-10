@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using MessagePack;
+﻿using System.ComponentModel;
 using Scriban;
 using JobAnalyzer.BLL;
 
@@ -30,16 +21,17 @@ namespace JobAnalyzer
 
             await wv1.EnsureCoreWebView2Async();
             await wv2.EnsureCoreWebView2Async();
-            wv1.NavigateToString(Job.HTML?.Replace("\\n", ""));
+            //wv1.NavigateToString(Job.HTML?.Replace("\\n", ""));
+            wv1.NavigateToString(Job.JobPostUrl.ToString());
             RenderAsync();
         }
         private async Task RenderAsync()
         {
             try
             {
-                Template template = Template.Parse(File.ReadAllText("Template.html"));
-                string result = template.Render(new { model = Job.AIResponse });
-                wv2.NavigateToString(result);
+                //Template template = Template.Parse(File.ReadAllText("Template.html"));
+                //string result = template.Render(new { model = Job.AIResponse });
+                //wv2.NavigateToString(result);
             }
             catch (Exception exp)
             {

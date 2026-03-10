@@ -66,8 +66,11 @@ namespace JobAnalyzer
             lsvData = new ListView();
             splitter2 = new Splitter();
             lstJobPosts = new ListBox();
-            lstJobPostMenu = new ContextMenuStrip(components);
+            jobPostListMenu = new ContextMenuStrip(components);
             mnuDelete = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            mnuSortAsc = new ToolStripMenuItem();
+            mnuDescending = new ToolStripMenuItem();
             txtSearch = new TextBox();
             textBox2 = new TextBox();
             splitContainer2 = new SplitContainer();
@@ -78,6 +81,7 @@ namespace JobAnalyzer
             jobObjectBindingSource = new BindingSource(components);
             bgw = new System.ComponentModel.BackgroundWorker();
             bs = new BindingSource(components);
+            imgList = new ImageList(components);
             toolStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -85,7 +89,7 @@ namespace JobAnalyzer
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
-            lstJobPostMenu.SuspendLayout();
+            jobPostListMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.SuspendLayout();
@@ -370,7 +374,7 @@ namespace JobAnalyzer
             // 
             // lstJobPosts
             // 
-            lstJobPosts.ContextMenuStrip = lstJobPostMenu;
+            lstJobPosts.ContextMenuStrip = jobPostListMenu;
             lstJobPosts.Dock = DockStyle.Top;
             lstJobPosts.FormattingEnabled = true;
             lstJobPosts.ItemHeight = 15;
@@ -381,19 +385,38 @@ namespace JobAnalyzer
             lstJobPosts.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             lstJobPosts.DoubleClick += lstJobPosts_DoubleClick;
             // 
-            // lstJobPostMenu
+            // jobPostListMenu
             // 
-            lstJobPostMenu.Items.AddRange(new ToolStripItem[] { mnuDelete });
-            lstJobPostMenu.Name = "lstJobPostMenu";
-            lstJobPostMenu.Size = new Size(132, 26);
+            jobPostListMenu.Items.AddRange(new ToolStripItem[] { mnuDelete, toolStripMenuItem1, mnuSortAsc, mnuDescending });
+            jobPostListMenu.Name = "lstJobPostMenu";
+            jobPostListMenu.Size = new Size(161, 76);
             // 
             // mnuDelete
             // 
             mnuDelete.Name = "mnuDelete";
             mnuDelete.ShortcutKeys = Keys.Delete;
-            mnuDelete.Size = new Size(131, 22);
+            mnuDelete.Size = new Size(160, 22);
             mnuDelete.Text = "&Delete";
             mnuDelete.Click += mnuDelete_Click;
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(157, 6);
+            // 
+            // mnuSortAsc
+            // 
+            mnuSortAsc.Name = "mnuSortAsc";
+            mnuSortAsc.Size = new Size(160, 22);
+            mnuSortAsc.Text = "Sort Ascending";
+            mnuSortAsc.Click += mnuSortAsc_Click;
+            // 
+            // mnuDescending
+            // 
+            mnuDescending.Name = "mnuDescending";
+            mnuDescending.Size = new Size(160, 22);
+            mnuDescending.Text = "Sort Descending";
+            mnuDescending.Click += mnuDescending_Click;
             // 
             // txtSearch
             // 
@@ -478,6 +501,56 @@ namespace JobAnalyzer
             bgw.DoWork += bgw_DoWork;
             bgw.ProgressChanged += bgw_ProgressChanged;
             // 
+            // imgList
+            // 
+            imgList.ColorDepth = ColorDepth.Depth24Bit;
+            imgList.ImageStream = (ImageListStreamer)resources.GetObject("imgList.ImageStream");
+            imgList.TransparentColor = Color.Transparent;
+            imgList.Images.SetKeyName(0, "g1.png");
+            imgList.Images.SetKeyName(1, "g2.png");
+            imgList.Images.SetKeyName(2, "g3.png");
+            imgList.Images.SetKeyName(3, "g3-4.png");
+            imgList.Images.SetKeyName(4, "g4.png");
+            imgList.Images.SetKeyName(5, "g5.png");
+            imgList.Images.SetKeyName(6, "g6.png");
+            imgList.Images.SetKeyName(7, "g7.png");
+            imgList.Images.SetKeyName(8, "g8.png");
+            imgList.Images.SetKeyName(9, "g9.png");
+            imgList.Images.SetKeyName(10, "g10.png");
+            imgList.Images.SetKeyName(11, "g11.png");
+            imgList.Images.SetKeyName(12, "g12.png");
+            imgList.Images.SetKeyName(13, "g13.png");
+            imgList.Images.SetKeyName(14, "g14.png");
+            imgList.Images.SetKeyName(15, "g15.png");
+            imgList.Images.SetKeyName(16, "g16.png");
+            imgList.Images.SetKeyName(17, "g17.png");
+            imgList.Images.SetKeyName(18, "g18.png");
+            imgList.Images.SetKeyName(19, "g19.png");
+            imgList.Images.SetKeyName(20, "g20.png");
+            imgList.Images.SetKeyName(21, "g21.png");
+            imgList.Images.SetKeyName(22, "g22.png");
+            imgList.Images.SetKeyName(23, "g24.png");
+            imgList.Images.SetKeyName(24, "g25.png");
+            imgList.Images.SetKeyName(25, "g26.png");
+            imgList.Images.SetKeyName(26, "g27.png");
+            imgList.Images.SetKeyName(27, "g28.png");
+            imgList.Images.SetKeyName(28, "g29.png");
+            imgList.Images.SetKeyName(29, "g30.png");
+            imgList.Images.SetKeyName(30, "g31.png");
+            imgList.Images.SetKeyName(31, "g35.png");
+            imgList.Images.SetKeyName(32, "g36.png");
+            imgList.Images.SetKeyName(33, "g37.png");
+            imgList.Images.SetKeyName(34, "g38.png");
+            imgList.Images.SetKeyName(35, "g39.png");
+            imgList.Images.SetKeyName(36, "g40.png");
+            imgList.Images.SetKeyName(37, "g41.png");
+            imgList.Images.SetKeyName(38, "g42.png");
+            imgList.Images.SetKeyName(39, "g43.png");
+            imgList.Images.SetKeyName(40, "g44.png");
+            imgList.Images.SetKeyName(41, "g45.png");
+            imgList.Images.SetKeyName(42, "g46.png");
+            imgList.Images.SetKeyName(43, "g47.png");
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -504,7 +577,7 @@ namespace JobAnalyzer
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
-            lstJobPostMenu.ResumeLayout(false);
+            jobPostListMenu.ResumeLayout(false);
             splitContainer2.Panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
@@ -537,7 +610,7 @@ namespace JobAnalyzer
         private ToolStripSeparator toolStripSeparator2;
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripButton btnDelete;
-        private ContextMenuStrip lstJobPostMenu;
+        private ContextMenuStrip jobPostListMenu;
         private ToolStripMenuItem mnuDelete;
         private ToolStripSeparator toolStripSeparator4;
         private ToolStripButton btnOpenInBrowser;
@@ -571,5 +644,9 @@ namespace JobAnalyzer
         private ToolStripButton btnLoadJob;
         private ToolStripButton btnHtmlCleanUp;
         private BindingSource bs;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem mnuSortAsc;
+        private ToolStripMenuItem mnuDescending;
+        private ImageList imgList;
     }
 }

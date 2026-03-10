@@ -28,7 +28,11 @@ public class AIResponse
     [Key(7)]
     public string? jobtitle { get; set; }
     [Key(8)]
-    public bool? applied { get; set; } = null;
+    public bool? applied { get; set; } = false;
     [Key(9)]
+    public string? professional_summary { get; set; }
+    [Key(10)]
     public string? pre { get; set; } = null;
+    [Key(11)]
+    public string suggested_resume { get; set; } = null;
 }

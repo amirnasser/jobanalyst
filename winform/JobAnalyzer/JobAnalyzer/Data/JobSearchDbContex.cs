@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using JobAnalyzer.BLL;
 namespace JobAnalyzer.Data;
 
@@ -31,14 +29,6 @@ public partial class JobSearchDbContex : DbContext
                 HasColumnName("id").
                 HasColumnType("varchar(32)");
 
-            entity.Property(e => e.DataFileContent).
-                HasColumnName("ResumeFile").
-                HasColumnType("blob");
-
-            entity.Property(e => e.HtmlJobPostFileContent).
-                HasColumnName("JobFile").
-                HasColumnType("blob");
-
             entity.Property(e => e.JobRequirements).
                 HasColumnName("JobRequirements").
                 HasColumnType("varchar(1500)");
@@ -63,9 +53,9 @@ public partial class JobSearchDbContex : DbContext
                 HasColumnName("CompanyLinkedIn").
                 HasColumnType("varchar(2500)");
 
-            entity.Property(e => e.JobPost).
-                HasColumnName("JobPost").
-                HasColumnType("varchar(1500)");
+            //entity.Property(e => e.JobPost).
+            //    HasColumnName("JobPost").
+            //    HasColumnType("varchar(1500)");
 
 
             entity.Property(e => e.JobLocation).
@@ -81,6 +71,7 @@ public partial class JobSearchDbContex : DbContext
             entity.Property(e => e.SalaryRange).
                 HasColumnName("SalaryRange").
                 HasColumnType("varchar(1500)");
+
         });
 
         OnModelCreatingPartial(modelBuilder);

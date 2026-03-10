@@ -31,10 +31,21 @@ namespace JobAnalyzer
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmJobDetail));
             pnlForm = new Panel();
-            txtJobTitle = new TextBox();
+            btnExperience = new Button();
+            label15 = new Label();
+            label10 = new Label();
+            dtpApply = new DateTimePicker();
             bs = new BindingSource(components);
+            dtpCreate = new DateTimePicker();
+            btnAttach = new Button();
+            btnOpenCoverLetter = new Button();
+            btnAttachCoverLetter = new Button();
+            bntJonpost = new Button();
+            btnLinkCoLinkedin = new Button();
+            btnLnkCompany = new Button();
+            label14 = new Label();
+            txtJobTitle = new TextBox();
             label9 = new Label();
             txtCompany = new TextBox();
             txtWhen = new TextBox();
@@ -64,28 +75,50 @@ namespace JobAnalyzer
             label1 = new Label();
             lblCompany = new Label();
             toolStrip1 = new ToolStrip();
+            btnProcess = new ToolStripButton();
+            btnLoadJobs = new ToolStripButton();
+            btnSaveJob = new ToolStripButton();
+            btnSaveAllJson = new ToolStripButton();
+            btnRefreshFolder = new ToolStripButton();
+            toolStripSeparator5 = new ToolStripSeparator();
             btnFirst = new ToolStripButton();
             btnPrev = new ToolStripButton();
             btnNext = new ToolStripButton();
             btnLast = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
-            btnChrome = new ToolStripButton();
-            btnOpen = new ToolStripButton();
-            btnOpenJson = new ToolStripButton();
-            toolStripSeparator2 = new ToolStripSeparator();
+            toolStripButton1 = new ToolStripButton();
             btnExport = new ToolStripButton();
+            btnChrome = new ToolStripButton();
+            btnDelete = new ToolStripButton();
+            btnOpen = new ToolStripButton();
+            toolStripSeparator2 = new ToolStripSeparator();
             toolStripSeparator3 = new ToolStripSeparator();
             btnLoad = new ToolStripButton();
             btnSaveAll = new ToolStripButton();
+            toolStripSeparator4 = new ToolStripSeparator();
+            btnSaveToDb = new ToolStripButton();
+            btnTuggle = new ToolStripButton();
+            toolStripSeparator6 = new ToolStripSeparator();
             imageList1 = new ImageList(components);
             statusStrip1 = new StatusStrip();
             txtStatus = new ToolStripStatusLabel();
+            toolStripStatusLabel1 = new ToolStripStatusLabel();
+            lblJobCount = new ToolStripStatusLabel();
             lstJobs = new ListBox();
             wv1 = new Microsoft.Web.WebView2.WinForms.WebView2();
             wv2 = new Microsoft.Web.WebView2.WinForms.WebView2();
             splitContainer1 = new SplitContainer();
             txtSearch = new TextBox();
             label8 = new Label();
+            menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            mnuSave = new ToolStripMenuItem();
+            databaseToolStripMenuItem = new ToolStripMenuItem();
+            saveToDBToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            mnuDelete = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripSeparator();
+            mnuJobsFromDb = new ToolStripMenuItem();
             pnlForm.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)bs).BeginInit();
             toolStrip1.SuspendLayout();
@@ -96,10 +129,23 @@ namespace JobAnalyzer
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // pnlForm
             // 
+            pnlForm.Controls.Add(btnExperience);
+            pnlForm.Controls.Add(label15);
+            pnlForm.Controls.Add(label10);
+            pnlForm.Controls.Add(dtpApply);
+            pnlForm.Controls.Add(dtpCreate);
+            pnlForm.Controls.Add(btnAttach);
+            pnlForm.Controls.Add(btnOpenCoverLetter);
+            pnlForm.Controls.Add(btnAttachCoverLetter);
+            pnlForm.Controls.Add(bntJonpost);
+            pnlForm.Controls.Add(btnLinkCoLinkedin);
+            pnlForm.Controls.Add(btnLnkCompany);
+            pnlForm.Controls.Add(label14);
             pnlForm.Controls.Add(txtJobTitle);
             pnlForm.Controls.Add(label9);
             pnlForm.Controls.Add(txtCompany);
@@ -131,23 +177,139 @@ namespace JobAnalyzer
             pnlForm.Controls.Add(lblCompany);
             pnlForm.Location = new Point(270, 48);
             pnlForm.Name = "pnlForm";
-            pnlForm.Size = new Size(358, 680);
+            pnlForm.Size = new Size(358, 830);
             pnlForm.TabIndex = 1;
             // 
-            // txtJobTitle
+            // btnExperience
             // 
-            txtJobTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtJobTitle.DataBindings.Add(new Binding("Text", bs, "JobTitle", true));
-            txtJobTitle.Enabled = false;
-            txtJobTitle.Location = new Point(10, 29);
-            txtJobTitle.Name = "txtJobTitle";
-            txtJobTitle.Size = new Size(330, 23);
-            txtJobTitle.TabIndex = 31;
+            btnExperience.Location = new Point(12, 696);
+            btnExperience.Name = "btnExperience";
+            btnExperience.Size = new Size(158, 23);
+            btnExperience.TabIndex = 44;
+            btnExperience.Text = "Copy Professional Exp.";
+            btnExperience.UseVisualStyleBackColor = true;
+            btnExperience.Click += btnExperience_Click;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(11, 772);
+            label15.Name = "label15";
+            label15.Size = new Size(64, 15);
+            label15.TabIndex = 43;
+            label15.Text = "Apply date";
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(10, 734);
+            label10.Name = "label10";
+            label10.Size = new Size(67, 15);
+            label10.TabIndex = 42;
+            label10.Text = "Create date";
+            label10.Click += label10_Click;
+            // 
+            // dtpApply
+            // 
+            dtpApply.DataBindings.Add(new Binding("Value", bs, "AppliedAt", true));
+            dtpApply.Location = new Point(85, 766);
+            dtpApply.Name = "dtpApply";
+            dtpApply.Size = new Size(253, 23);
+            dtpApply.TabIndex = 41;
             // 
             // bs
             // 
             bs.DataSource = typeof(JobObject);
             bs.CurrentChanged += bs_CurrentChanged;
+            // 
+            // dtpCreate
+            // 
+            dtpCreate.DataBindings.Add(new Binding("Value", bs, "CreatedAt", true));
+            dtpCreate.Location = new Point(85, 728);
+            dtpCreate.Name = "dtpCreate";
+            dtpCreate.Size = new Size(253, 23);
+            dtpCreate.TabIndex = 40;
+            // 
+            // btnAttach
+            // 
+            btnAttach.Location = new Point(176, 696);
+            btnAttach.Name = "btnAttach";
+            btnAttach.Size = new Size(162, 23);
+            btnAttach.TabIndex = 39;
+            btnAttach.Text = "Attach Cover Letter";
+            btnAttach.UseVisualStyleBackColor = true;
+            btnAttach.Click += btnAttach_Click;
+            // 
+            // btnOpenCoverLetter
+            // 
+            btnOpenCoverLetter.Enabled = false;
+            btnOpenCoverLetter.Location = new Point(176, 667);
+            btnOpenCoverLetter.Name = "btnOpenCoverLetter";
+            btnOpenCoverLetter.Size = new Size(162, 23);
+            btnOpenCoverLetter.TabIndex = 38;
+            btnOpenCoverLetter.Text = "Open Cover Letter";
+            btnOpenCoverLetter.UseVisualStyleBackColor = true;
+            btnOpenCoverLetter.Click += btnOpenCoverLetter_Click;
+            // 
+            // btnAttachCoverLetter
+            // 
+            btnAttachCoverLetter.Location = new Point(12, 667);
+            btnAttachCoverLetter.Name = "btnAttachCoverLetter";
+            btnAttachCoverLetter.Size = new Size(158, 23);
+            btnAttachCoverLetter.TabIndex = 37;
+            btnAttachCoverLetter.Text = "Create Cover Letter";
+            btnAttachCoverLetter.UseVisualStyleBackColor = true;
+            btnAttachCoverLetter.Click += btnAttachCoverLetter_Click;
+            // 
+            // bntJonpost
+            // 
+            bntJonpost.Image = ImageResource.g15_16;
+            bntJonpost.Location = new Point(306, 210);
+            bntJonpost.Name = "bntJonpost";
+            bntJonpost.Size = new Size(32, 23);
+            bntJonpost.TabIndex = 36;
+            bntJonpost.UseVisualStyleBackColor = true;
+            bntJonpost.Click += bntJonpost_Click;
+            // 
+            // btnLinkCoLinkedin
+            // 
+            btnLinkCoLinkedin.Image = ImageResource.g15_16;
+            btnLinkCoLinkedin.Location = new Point(306, 166);
+            btnLinkCoLinkedin.Name = "btnLinkCoLinkedin";
+            btnLinkCoLinkedin.Size = new Size(32, 23);
+            btnLinkCoLinkedin.TabIndex = 35;
+            btnLinkCoLinkedin.UseVisualStyleBackColor = true;
+            btnLinkCoLinkedin.Click += btnLinkCoLinkedin_Click;
+            // 
+            // btnLnkCompany
+            // 
+            btnLnkCompany.Image = ImageResource.g15_16;
+            btnLnkCompany.Location = new Point(308, 123);
+            btnLnkCompany.Name = "btnLnkCompany";
+            btnLnkCompany.Size = new Size(32, 23);
+            btnLnkCompany.TabIndex = 34;
+            btnLnkCompany.UseVisualStyleBackColor = true;
+            btnLnkCompany.Click += btnLnkCompany_Click;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.DataBindings.Add(new Binding("Text", bs, "id", true));
+            label14.Location = new Point(85, 11);
+            label14.Name = "label14";
+            label14.Size = new Size(0, 15);
+            label14.TabIndex = 33;
+            label14.Click += label14_Click;
+            // 
+            // txtJobTitle
+            // 
+            txtJobTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtJobTitle.DataBindings.Add(new Binding("Text", bs, "Title", true));
+            txtJobTitle.Enabled = false;
+            txtJobTitle.Location = new Point(10, 29);
+            txtJobTitle.Name = "txtJobTitle";
+            txtJobTitle.Size = new Size(330, 23);
+            txtJobTitle.TabIndex = 31;
             // 
             // label9
             // 
@@ -251,6 +413,7 @@ namespace JobAnalyzer
             chkApplied.TabIndex = 10;
             chkApplied.Text = "Applied";
             chkApplied.UseVisualStyleBackColor = true;
+            chkApplied.CheckedChanged += chkApplied_CheckedChanged;
             // 
             // chkMatched
             // 
@@ -342,7 +505,7 @@ namespace JobAnalyzer
             txtJobPost.DataBindings.Add(new Binding("Text", bs, "JobPostUrl", true));
             txtJobPost.Location = new Point(10, 211);
             txtJobPost.Name = "txtJobPost";
-            txtJobPost.Size = new Size(330, 23);
+            txtJobPost.Size = new Size(290, 23);
             txtJobPost.TabIndex = 4;
             // 
             // label3
@@ -357,7 +520,7 @@ namespace JobAnalyzer
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSave.Location = new Point(318, 1242);
+            btnSave.Location = new Point(318, 1392);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 23);
             btnSave.TabIndex = 6;
@@ -370,7 +533,7 @@ namespace JobAnalyzer
             txtCompanyLinkedIn.DataBindings.Add(new Binding("Text", bs, "CompanyLinkedIn", true));
             txtCompanyLinkedIn.Location = new Point(10, 167);
             txtCompanyLinkedIn.Name = "txtCompanyLinkedIn";
-            txtCompanyLinkedIn.Size = new Size(330, 23);
+            txtCompanyLinkedIn.Size = new Size(292, 23);
             txtCompanyLinkedIn.TabIndex = 3;
             // 
             // label2
@@ -388,7 +551,7 @@ namespace JobAnalyzer
             txtCompanyUrl.DataBindings.Add(new Binding("Text", bs, "CompanyUrl", true));
             txtCompanyUrl.Location = new Point(10, 123);
             txtCompanyUrl.Name = "txtCompanyUrl";
-            txtCompanyUrl.Size = new Size(330, 23);
+            txtCompanyUrl.Size = new Size(292, 23);
             txtCompanyUrl.TabIndex = 2;
             // 
             // label1
@@ -411,17 +574,77 @@ namespace JobAnalyzer
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, btnChrome, btnOpen, btnOpenJson, toolStripSeparator2, btnExport, toolStripSeparator3, btnLoad, btnSaveAll });
-            toolStrip1.Location = new Point(0, 0);
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnProcess, btnLoadJobs, btnSaveJob, btnSaveAllJson, btnRefreshFolder, toolStripSeparator5, btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, toolStripButton1, btnExport, btnChrome, btnDelete, btnOpen, toolStripSeparator2, toolStripSeparator3, btnLoad, btnSaveAll, toolStripSeparator4, btnSaveToDb, btnTuggle, toolStripSeparator6 });
+            toolStrip1.Location = new Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1184, 25);
             toolStrip1.TabIndex = 2;
             toolStrip1.Text = "toolStrip1";
             // 
+            // btnProcess
+            // 
+            btnProcess.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnProcess.Image = ImageResource.play;
+            btnProcess.ImageTransparentColor = Color.Magenta;
+            btnProcess.Name = "btnProcess";
+            btnProcess.Size = new Size(23, 22);
+            btnProcess.Text = "toolStripButton1";
+            btnProcess.Click += btnProcess_Click;
+            // 
+            // btnLoadJobs
+            // 
+            btnLoadJobs.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnLoadJobs.Image = ImageResource.g19_16;
+            btnLoadJobs.ImageTransparentColor = Color.Magenta;
+            btnLoadJobs.Name = "btnLoadJobs";
+            btnLoadJobs.Size = new Size(23, 22);
+            btnLoadJobs.Text = "toolStripButton1";
+            btnLoadJobs.TextImageRelation = TextImageRelation.Overlay;
+            btnLoadJobs.ToolTipText = "Open Job files";
+            btnLoadJobs.Click += btnLoadJobs_Click;
+            // 
+            // btnSaveJob
+            // 
+            btnSaveJob.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnSaveJob.Image = ImageResource._save_16;
+            btnSaveJob.ImageTransparentColor = Color.Magenta;
+            btnSaveJob.Name = "btnSaveJob";
+            btnSaveJob.Size = new Size(23, 22);
+            btnSaveJob.Text = "toolStripButton1";
+            btnSaveJob.ToolTipText = "Save job";
+            btnSaveJob.Click += btnSaveJob_Click;
+            // 
+            // btnSaveAllJson
+            // 
+            btnSaveAllJson.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnSaveAllJson.Image = ImageResource._saveas_16;
+            btnSaveAllJson.ImageTransparentColor = Color.Magenta;
+            btnSaveAllJson.Name = "btnSaveAllJson";
+            btnSaveAllJson.Size = new Size(23, 22);
+            btnSaveAllJson.Text = "toolStripButton2";
+            btnSaveAllJson.ToolTipText = "Save all as json";
+            btnSaveAllJson.Click += btnSaveAllJson_Click;
+            // 
+            // btnRefreshFolder
+            // 
+            btnRefreshFolder.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnRefreshFolder.Image = ImageResource.g45_16;
+            btnRefreshFolder.ImageTransparentColor = Color.Magenta;
+            btnRefreshFolder.Name = "btnRefreshFolder";
+            btnRefreshFolder.Size = new Size(23, 22);
+            btnRefreshFolder.Text = "toolStripButton1";
+            btnRefreshFolder.ToolTipText = "Refresh Jobs";
+            btnRefreshFolder.Click += btnRefreshFolder_Click;
+            // 
+            // toolStripSeparator5
+            // 
+            toolStripSeparator5.Name = "toolStripSeparator5";
+            toolStripSeparator5.Size = new Size(6, 25);
+            // 
             // btnFirst
             // 
             btnFirst.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnFirst.Image = (Image)resources.GetObject("btnFirst.Image");
+            btnFirst.Image = ImageResource._first_16;
             btnFirst.ImageTransparentColor = Color.Magenta;
             btnFirst.Name = "btnFirst";
             btnFirst.Size = new Size(23, 22);
@@ -431,7 +654,7 @@ namespace JobAnalyzer
             // btnPrev
             // 
             btnPrev.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnPrev.Image = (Image)resources.GetObject("btnPrev.Image");
+            btnPrev.Image = ImageResource._prev_16;
             btnPrev.ImageTransparentColor = Color.Magenta;
             btnPrev.Name = "btnPrev";
             btnPrev.Size = new Size(23, 22);
@@ -441,7 +664,7 @@ namespace JobAnalyzer
             // btnNext
             // 
             btnNext.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnNext.Image = (Image)resources.GetObject("btnNext.Image");
+            btnNext.Image = ImageResource._next_16;
             btnNext.ImageTransparentColor = Color.Magenta;
             btnNext.Name = "btnNext";
             btnNext.Size = new Size(23, 22);
@@ -452,7 +675,7 @@ namespace JobAnalyzer
             // btnLast
             // 
             btnLast.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnLast.Image = (Image)resources.GetObject("btnLast.Image");
+            btnLast.Image = ImageResource._last_16;
             btnLast.ImageTransparentColor = Color.Magenta;
             btnLast.Name = "btnLast";
             btnLast.Size = new Size(23, 22);
@@ -465,10 +688,32 @@ namespace JobAnalyzer
             toolStripSeparator1.Name = "toolStripSeparator1";
             toolStripSeparator1.Size = new Size(6, 25);
             // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton1.Image = ImageResource.edit;
+            toolStripButton1.ImageTransparentColor = Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new Size(23, 22);
+            toolStripButton1.Text = "Cover letter";
+            toolStripButton1.ToolTipText = "Create Cover Letter";
+            toolStripButton1.Click += toolStripButton1_Click;
+            // 
+            // btnExport
+            // 
+            btnExport.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnExport.Image = ImageResource.g22_16;
+            btnExport.ImageTransparentColor = Color.Magenta;
+            btnExport.Name = "btnExport";
+            btnExport.Size = new Size(23, 22);
+            btnExport.Text = "toolStripButton1";
+            btnExport.ToolTipText = "Export Data File";
+            btnExport.Click += btnExport_Click;
+            // 
             // btnChrome
             // 
             btnChrome.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnChrome.Image = (Image)resources.GetObject("btnChrome.Image");
+            btnChrome.Image = ImageResource.g9_16;
             btnChrome.ImageTransparentColor = Color.Magenta;
             btnChrome.Name = "btnChrome";
             btnChrome.Size = new Size(23, 22);
@@ -476,10 +721,20 @@ namespace JobAnalyzer
             btnChrome.ToolTipText = "Open Job Post in Chrome";
             btnChrome.Click += btnChrome_Click;
             // 
+            // btnDelete
+            // 
+            btnDelete.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnDelete.Image = ImageResource.g30_16;
+            btnDelete.ImageTransparentColor = Color.Magenta;
+            btnDelete.Name = "btnDelete";
+            btnDelete.Size = new Size(23, 22);
+            btnDelete.Text = "toolStripButton1";
+            btnDelete.ToolTipText = "Delete Job";
+            // 
             // btnOpen
             // 
             btnOpen.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnOpen.Image = (Image)resources.GetObject("btnOpen.Image");
+            btnOpen.Image = ImageResource.g19_16;
             btnOpen.ImageTransparentColor = Color.Magenta;
             btnOpen.Name = "btnOpen";
             btnOpen.Size = new Size(23, 22);
@@ -487,32 +742,10 @@ namespace JobAnalyzer
             btnOpen.ToolTipText = "Open HTML Job File";
             btnOpen.Click += btnOpen_Click;
             // 
-            // btnOpenJson
-            // 
-            btnOpenJson.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnOpenJson.Image = (Image)resources.GetObject("btnOpenJson.Image");
-            btnOpenJson.ImageTransparentColor = Color.Magenta;
-            btnOpenJson.Name = "btnOpenJson";
-            btnOpenJson.Size = new Size(23, 22);
-            btnOpenJson.Text = "toolStripButton1";
-            btnOpenJson.ToolTipText = "Open Data File";
-            btnOpenJson.Click += btnOpenJson_Click;
-            // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
             toolStripSeparator2.Size = new Size(6, 25);
-            // 
-            // btnExport
-            // 
-            btnExport.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnExport.Image = (Image)resources.GetObject("btnExport.Image");
-            btnExport.ImageTransparentColor = Color.Magenta;
-            btnExport.Name = "btnExport";
-            btnExport.Size = new Size(23, 22);
-            btnExport.Text = "toolStripButton1";
-            btnExport.ToolTipText = "Export Data File";
-            btnExport.Click += btnExport_Click;
             // 
             // toolStripSeparator3
             // 
@@ -522,7 +755,7 @@ namespace JobAnalyzer
             // btnLoad
             // 
             btnLoad.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnLoad.Image = (Image)resources.GetObject("btnLoad.Image");
+            btnLoad.Image = ImageResource._import_16;
             btnLoad.ImageTransparentColor = Color.Magenta;
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(23, 22);
@@ -533,13 +766,45 @@ namespace JobAnalyzer
             // btnSaveAll
             // 
             btnSaveAll.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnSaveAll.Image = (Image)resources.GetObject("btnSaveAll.Image");
+            btnSaveAll.Image = ImageResource.g31_16;
             btnSaveAll.ImageTransparentColor = Color.Magenta;
             btnSaveAll.Name = "btnSaveAll";
             btnSaveAll.Size = new Size(23, 22);
             btnSaveAll.Text = "toolStripButton1";
             btnSaveAll.ToolTipText = "Save All";
             btnSaveAll.Click += btnSaveAll_Click;
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(6, 25);
+            // 
+            // btnSaveToDb
+            // 
+            btnSaveToDb.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnSaveToDb.Image = ImageResource.g12_16;
+            btnSaveToDb.ImageTransparentColor = Color.Magenta;
+            btnSaveToDb.Name = "btnSaveToDb";
+            btnSaveToDb.Size = new Size(23, 22);
+            btnSaveToDb.Text = "toolStripButton1";
+            btnSaveToDb.ToolTipText = "Save to Database and Delete it from folder";
+            btnSaveToDb.Click += btnSaveToDb_Click;
+            // 
+            // btnTuggle
+            // 
+            btnTuggle.Checked = true;
+            btnTuggle.CheckState = CheckState.Checked;
+            btnTuggle.Image = ImageResource.g45_16;
+            btnTuggle.ImageTransparentColor = Color.Magenta;
+            btnTuggle.Name = "btnTuggle";
+            btnTuggle.Size = new Size(106, 22);
+            btnTuggle.Text = "From Database";
+            btnTuggle.Click += btnTuggle_Click;
+            // 
+            // toolStripSeparator6
+            // 
+            toolStripSeparator6.Name = "toolStripSeparator6";
+            toolStripSeparator6.Size = new Size(6, 25);
             // 
             // imageList1
             // 
@@ -549,8 +814,8 @@ namespace JobAnalyzer
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { txtStatus });
-            statusStrip1.Location = new Point(0, 731);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { txtStatus, toolStripStatusLabel1, lblJobCount });
+            statusStrip1.Location = new Point(0, 883);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1184, 22);
             statusStrip1.TabIndex = 3;
@@ -559,10 +824,23 @@ namespace JobAnalyzer
             // txtStatus
             // 
             txtStatus.Name = "txtStatus";
-            txtStatus.Size = new Size(1169, 17);
+            txtStatus.Size = new Size(1062, 17);
             txtStatus.Spring = true;
             txtStatus.Text = "toolStripStatusLabel1";
             txtStatus.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // toolStripStatusLabel1
+            // 
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(94, 17);
+            toolStripStatusLabel1.Text = "Number of Jobs:";
+            // 
+            // lblJobCount
+            // 
+            lblJobCount.DataBindings.Add(new Binding("Text", this, "JobCount", true, DataSourceUpdateMode.OnPropertyChanged));
+            lblJobCount.Name = "lblJobCount";
+            lblJobCount.Size = new Size(13, 17);
+            lblJobCount.Text = "0";
             // 
             // lstJobs
             // 
@@ -571,7 +849,7 @@ namespace JobAnalyzer
             lstJobs.ItemHeight = 15;
             lstJobs.Location = new Point(12, 78);
             lstJobs.Name = "lstJobs";
-            lstJobs.Size = new Size(252, 589);
+            lstJobs.Size = new Size(252, 799);
             lstJobs.TabIndex = 4;
             lstJobs.SelectedIndexChanged += lstJobs_SelectedIndexChanged;
             // 
@@ -583,7 +861,7 @@ namespace JobAnalyzer
             wv1.Dock = DockStyle.Fill;
             wv1.Location = new Point(0, 0);
             wv1.Name = "wv1";
-            wv1.Size = new Size(534, 308);
+            wv1.Size = new Size(534, 227);
             wv1.TabIndex = 5;
             wv1.ZoomFactor = 1D;
             // 
@@ -595,7 +873,7 @@ namespace JobAnalyzer
             wv2.Dock = DockStyle.Fill;
             wv2.Location = new Point(0, 0);
             wv2.Name = "wv2";
-            wv2.Size = new Size(534, 305);
+            wv2.Size = new Size(534, 593);
             wv2.TabIndex = 6;
             wv2.ZoomFactor = 1D;
             // 
@@ -614,8 +892,8 @@ namespace JobAnalyzer
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(wv2);
-            splitContainer1.Size = new Size(538, 625);
-            splitContainer1.SplitterDistance = 312;
+            splitContainer1.Size = new Size(538, 832);
+            splitContainer1.SplitterDistance = 231;
             splitContainer1.TabIndex = 7;
             // 
             // txtSearch
@@ -636,18 +914,84 @@ namespace JobAnalyzer
             label8.TabIndex = 9;
             label8.Text = "Search: ";
             // 
+            // menuStrip1
+            // 
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, databaseToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(1184, 24);
+            menuStrip1.TabIndex = 10;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuSave });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "&File";
+            // 
+            // mnuSave
+            // 
+            mnuSave.Name = "mnuSave";
+            mnuSave.ShortcutKeys = Keys.Control | Keys.S;
+            mnuSave.Size = new Size(138, 22);
+            mnuSave.Text = "&Save";
+            mnuSave.Click += mnuSave_Click;
+            // 
+            // databaseToolStripMenuItem
+            // 
+            databaseToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveToDBToolStripMenuItem, toolStripMenuItem1, mnuDelete, toolStripMenuItem2, mnuJobsFromDb });
+            databaseToolStripMenuItem.Name = "databaseToolStripMenuItem";
+            databaseToolStripMenuItem.Size = new Size(42, 20);
+            databaseToolStripMenuItem.Text = "&Jobs";
+            // 
+            // saveToDBToolStripMenuItem
+            // 
+            saveToDBToolStripMenuItem.Name = "saveToDBToolStripMenuItem";
+            saveToDBToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+            saveToDBToolStripMenuItem.Size = new Size(202, 22);
+            saveToDBToolStripMenuItem.Text = "&Save to DB";
+            saveToDBToolStripMenuItem.Click += saveToDBToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(199, 6);
+            // 
+            // mnuDelete
+            // 
+            mnuDelete.Name = "mnuDelete";
+            mnuDelete.ShortcutKeys = Keys.Delete;
+            mnuDelete.Size = new Size(202, 22);
+            mnuDelete.Text = "&Delete";
+            mnuDelete.Click += mnuDelete_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(199, 6);
+            // 
+            // mnuJobsFromDb
+            // 
+            mnuJobsFromDb.Name = "mnuJobsFromDb";
+            mnuJobsFromDb.Size = new Size(202, 22);
+            mnuJobsFromDb.Text = "&Load All From Databas";
+            mnuJobsFromDb.Click += mnuJobsFromDb_Click;
+            // 
             // FrmJobDetail
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1184, 753);
+            ClientSize = new Size(1184, 905);
             Controls.Add(label8);
             Controls.Add(txtSearch);
             Controls.Add(splitContainer1);
             Controls.Add(lstJobs);
             Controls.Add(statusStrip1);
             Controls.Add(toolStrip1);
+            Controls.Add(menuStrip1);
             Controls.Add(pnlForm);
+            MainMenuStrip = menuStrip1;
             Name = "FrmJobDetail";
             Text = "Job Detail";
             WindowState = FormWindowState.Maximized;
@@ -665,6 +1009,8 @@ namespace JobAnalyzer
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -716,7 +1062,6 @@ namespace JobAnalyzer
         private ToolStripButton btnChrome;
         private ToolStripButton btnOpen;
         private ToolStripSeparator toolStripSeparator2;
-        private ToolStripButton btnOpenJson;
         private TextBox txtSearch;
         private Label label8;
         private ToolStripButton btnExport;
@@ -725,5 +1070,40 @@ namespace JobAnalyzer
         private ToolStripButton btnLoad;
         private TextBox txtJobTitle;
         private Label label9;
+        private ToolStripSeparator toolStripSeparator4;
+        private ToolStripButton btnSaveToDb;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem databaseToolStripMenuItem;
+        private ToolStripMenuItem saveToDBToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripStatusLabel toolStripStatusLabel1;
+        private ToolStripStatusLabel lblJobCount;
+        private ToolStripMenuItem mnuDelete;
+        private ToolStripButton btnDelete;
+        private ToolStripSeparator toolStripMenuItem2;
+        private ToolStripMenuItem mnuJobsFromDb;
+        private ToolStripButton btnTuggle;
+        private Label label14;
+        private ToolStripButton btnProcess;
+        private ToolStripSeparator toolStripSeparator5;
+        private Button bntJonpost;
+        private Button btnLinkCoLinkedin;
+        private Button btnLnkCompany;
+        private ToolStripButton btnSaveJob;
+        private ToolStripMenuItem mnuSave;
+        private ToolStripButton btnLoadJobs;
+        private ToolStripButton btnRefreshFolder;
+        private ToolStripSeparator toolStripSeparator6;
+        private ToolStripButton toolStripButton1;
+        private Button btnOpenCoverLetter;
+        private Button btnAttachCoverLetter;
+        private Button btnAttach;
+        private Label label15;
+        private Label label10;
+        private DateTimePicker dtpApply;
+        private DateTimePicker dtpCreate;
+        private ToolStripButton btnSaveAllJson;
+        private Button btnExperience;
     }
 }

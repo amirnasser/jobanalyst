@@ -15,45 +15,77 @@
             font-style: normal;
             font-variation-settings: "wdth" 100;
         }
-        body.matched {
-            background-color: lightgreen;
-        }
-        body.applied {
-            background-color:lightcoral;
+
+            body.matched {
+                background-color: lightgreen;
+            }
+
+            body.applied {
+                background-color: lightcoral;
+            }
+
+        h1, h2 {
+            margin: 0;
         }
 
+        .alert {
+            background-color: lightyellow;
+            border-left: 6px solid gold;
+            padding: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
-<body class="{{if model.matched && model.matched != ""}}matched{{end}} {{if model.applied && model.applied != null}}applied{{end}}">
-    {{if model.matched && model.matched != ""}}<div class="matched">You are match</div>{{end}}
-    <h1>{{model.jobtitle}} @ {{model.company}}</h1>
-    {{ if model.reason && model.reason != ""}}
-    <h2>Reason</h2>
-    <p>{{model.reason}}</p>
+<body class="{{if model.Matched && model.Matched != ""}}matched{{end}} {{if model.applied && model.applied != null}}applied{{end}}">
+
+    <h1>{{model.Title}}</h1>
+    <h2>{{model.CompanyName}}</h2>
+
+    {{if model.ProfessionalSummary }}
+    <h3>Professional Summary</h3>
+    <p class="alert">{{model.ProfessionalSummary}}</p>
+    {{end}}
+
+    {{ if model.Coverletter }}
+    <h3>Cover Letter</h3>
+    <p class="alert">{{model.Coverletter}}</p>
     {{ end }}
 
-    {{if model.job_requirements && model.job_requirements.size>0}}
-    <h2>Job Requirements:</h2>
+    {{if model.SuggestedResume}}
+    <h3>Suggested Resume</h3>
+    <div class="hidden" >{{model.SuggestedResume}}</div>
+    {{end}}
+
+    {{if model.JobRequirements && model.JobRequirements.size>0}}
+    <h3>Job Requirements:</h3>
     <ul>
-        {{for requirement in model.job_requirements}}
+        {{for requirement in model.JobRequirements}}
         <li>{{requirement}}</li>
         {{end}}
     </ul>
     {{end}}
-    {{if model.missing_requirements && model.missing_requirements.size>0}}
-    <h2>Missing Job Requirements:</h2>
+    {{if model.MissingRequirements && model.MissingRequirements.size>0}}
+    <h3>Missing Job Requirements:</h3>
     <ul>
-        {{for missing in model.missing_requirements}}
+        {{for missing in model.MissingRequirements}}
         <li>{{missing}}</li>
         {{end}}
     </ul>
     {{end}}
-    {{ if model.coverletter }}
-    <h2>Cover Letter</h2>
-    <pre>{{model.coverletter}}</pre>
+
+    {{if model.Reason && model.Reason != "" }}
+    <h3>Reason</h3>
+    {{ if model.Reason }}    
+    <p>{{model.Reason}}</p>
     {{ end }}
-    {{if model.pre }}
-    <pre>{{model.pre}}</pre>
-    {{end}}
+
+
+
+    {{ else }}
+    <h3>File is not processed yet.</h3>
+    {{ end }}
 </body>
-</html>
+</html> 

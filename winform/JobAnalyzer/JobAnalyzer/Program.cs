@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Newtonsoft.Json;
-
 namespace JobAnalyzer
 {
     internal static class Program
@@ -20,7 +17,7 @@ namespace JobAnalyzer
             //    var dir = File.ReadAllText("current_folder.txt");
             //    Application.Run(new FrmJobDetail(dir));
             //}
-            Application.Run(new frmMain());
+            Application.Run(new FrmJobDetail());
         }
     }
 }

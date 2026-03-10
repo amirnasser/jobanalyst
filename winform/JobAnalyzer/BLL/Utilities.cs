@@ -45,4 +45,29 @@ public static class Utilities
         var selectedNode = doc.DocumentNode.SelectSingleNode("//body/p/a");
         return selectedNode?.Attributes[0]?.Value;
     }
+
+    public static string ToBase64(this byte[] data) => Base64Helper.ToBase64(data);
+    public static byte[] FromBase64(this string base64) => Base64Helper.FromBase64(base64);
 }
+
+public static class Base64Helper
+{
+    // Convert byte[] to Base64 string
+    public static string ToBase64(byte[] data)
+    {
+        if (data == null || data.Length == 0)
+            return string.Empty;
+
+        return Convert.ToBase64String(data);
+    }
+
+    // Convert Base64 string back to byte[]
+    public static byte[] FromBase64(string base64)
+    {
+        if (string.IsNullOrWhiteSpace(base64))
+            return Array.Empty<byte>();
+
+        return Convert.FromBase64String(base64);
+    }
+}
+

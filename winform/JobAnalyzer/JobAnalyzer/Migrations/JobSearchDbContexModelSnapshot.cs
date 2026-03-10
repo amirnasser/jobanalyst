@@ -138,7 +138,6 @@ namespace JobAnalyzer.Migrations
                         .HasColumnName("SalaryRange");
 
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("When")

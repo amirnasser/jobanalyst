@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Newtonsoft.Json;
 
 namespace JobAnalyzer.BLL;
 
@@ -17,6 +18,11 @@ public static class Extensions
     //{
     //    return (listbox.SelectedItem as ListboxItem).File.FullName;
     //}
+    public static T DeepClone<T>(this T obj)
+    {
+        string json = JsonConvert.SerializeObject(obj);
+        return (T)JsonConvert.DeserializeObject<T>(json);
+    }
 
     public static string Cleanup(this string response)
     {
@@ -45,6 +51,9 @@ public static class Extensions
 
     public static string HtmlCleanup(this string html)
     {
+        if (string.IsNullOrEmpty(html))
+            return string.Empty;
+
         HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
         doc.LoadHtml(html);
         //remove svg element from doc
@@ -63,8 +72,12 @@ public static class Extensions
 
     public static string ToShortname(this string filename)
     {
-        var file = new FileInfo(filename);
-        return string.IsNullOrEmpty(file.Extension) ? file.Name : file.Name.Replace(file.Extension, string.Empty);
+        if (filename != null && File.Exists(filename))
+        {
+            var file = new FileInfo(filename);
+            return string.IsNullOrEmpty(file.Extension) ? file.Name : file.Name.Replace(file.Extension, string.Empty);
+        }
+        return string.Empty;
     }
     public static string GetText(this string html)
     { 
@@ -98,6 +111,12 @@ public static class Extensions
 
             return sb.ToString();
         }
+    }
+
+    public static void Error(this Serilog.ILogger logger, Exception exp)
+    {
+        logger.Error(exp, exp.Message);
+        logger.Error(exp, exp.StackTrace);
     }
 
 }

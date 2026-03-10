@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using Newtonsoft.Json;
@@ -14,8 +15,8 @@ public partial class AICall : IDisposable
     public class AICallSettings
     {
         public string BaseUrl { get; set; } = "http://10.1.20.61:3100";
-        public string ApiKey { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQzMjkzNmZkLTdmNGMtNDU3ZS04YjBkLWZmZGQ4OWUyMzliNyIsImV4cCI6MTc3NDk5NjcwOCwianRpIjoiNTI5MTkwMDMtOWQwMy00OGQ3LWIxYjktNjgxN2YyMDU3YWExIn0.DzoQ6k9ng5JNiqbPCPxLNfsdNr61fWYPqM0RImA86oA";
-        public string Prompt { get; set; } = "Based on documents Am I good candidate for this job? return json object as follow where company is the name of job post company name , missing_requirements is the requirement that I am missing  otherwise empy array '[]' job_requirements is the job post requirement or skills otherwise empy array '[]', reason is why I am good candidate, coverletter generate cover letter for this job post, matched return boolean value true if I am a candiadate otherwisise false ,jobtitle is the job post title{'company': '','missing_requirements': [],'job_requirements': [], 'reason': '', 'coverletter': '','matched': true or false, 'jobtitle': '' }";
+        public string ApiKey { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQzMjkzNmZkLTdmNGMtNDU3ZS04YjBkLWZmZGQ4OWUyMzliNyIsImV4cCI6MTc3NTUxMzQ4NSwianRpIjoiY2FhMWU0NGItZjM2MC00NjhiLTgzNDctMDc0M2ZkZDJhNGFmIn0.pvrMEyoopwpHTdjj2LJZr_3MQx3wQ5ShdF6Bk-8ZTqs";
+        public string Prompt { get; set; } = "Based on documents Am I good candidate for this job? return json object as follow where company is the name of job post company name , missing_requirements is the requirement that I am missing  otherwise empy array '[]' job_requirements is the job post requirement or skills otherwise empy array '[]', reason is why I am good candidate, coverletter generate cover letter for this job post, matched return boolean value true if I am a candiadate otherwisise false ,jobtitle is the job post title, and also I need to update my Professional Summary in my resume provide it also in profesional_summary and SUGGESTED RESUME AS HTML string of the json {'company': '','missing_requirements': [],'job_requirements': [], 'reason': '', 'coverletter': '','matched': true or false, 'jobtitle': '', professional_summary: '', suggested_resume: '' }";
         public string Model { get; set; } = "gpt-oss:20b";
     }
 
@@ -65,19 +66,18 @@ public partial class AICall : IDisposable
         }
     }
 
-    internal async Task<string> UploadFileAsync(string jobfilepath)
+    internal async Task<string> UploadFileAsync(string filename)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
             try
             {
-
                 CancellationToken cancellationToken = new CancellationToken();
                 var request = new RestRequest("/api/v1/files/?process=true&process_in_background=true")
                 {
                     Authenticator = new JwtAuthenticator(this.settings.ApiKey),
                 };
-                request.AddFile("file", jobfilepath);
+                request.AddFile("file", filename, filename);
 
                 var response = restClient.PostAsync(request).Result;
 
@@ -328,11 +328,11 @@ public partial class AICall : IDisposable
                 var folderId = await aicall.GetJobsFolderIdAsync();                
                 FileInfo file = new FileInfo(selectedFile);
                 //Uplod Jobfile
-                string jobPostFileId = await aicall.UploadFileAsync(selectedFile);
+                string jobPostFileId = await aicall.UploadFileAsync(selectedFile, File.ReadAllBytes(selectedFile));
                 var statusJobPostFileId = await aicall.CheckFileStatusAsync(jobPostFileId);
 
                 //Upload Resume file
-                string resumeFileId = await aicall.UploadFileAsync("f_resume.pdf");
+                string resumeFileId = await aicall.UploadFileAsync("resume.txt", File.ReadAllBytes("resume.txt"));
                 var statusResumeFileId = await aicall.CheckFileStatusAsync(resumeFileId);
 
                 //Create a Chat with these two files 
@@ -351,7 +351,7 @@ public partial class AICall : IDisposable
 
                     aiResponse = JsonConvert.DeserializeObject<AIResponse>(content);
                     Utilities.Logger.Information($"deserialized content: {content} is {ellapsed} ms");
-                    File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(aiResponse));
+                    //File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(aiResponse));
                 }
                 catch (Exception exp)
                 {
@@ -363,13 +363,13 @@ public partial class AICall : IDisposable
         }
         catch (Exception exp)
         {
-            File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(completionResponse));
+            //File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(completionResponse));
             Utilities.Logger.Error(exp.Message);
             return null;
         }
     }
 
-    public async Task<AIResponse?> GetResponseAsync(JobObject job)
+    public async Task<Response<JobObject>> GetResponseAsync(JobObject job)
     {
         CompletionResponse completionResponse = new CompletionResponse();
         try
@@ -382,11 +382,11 @@ public partial class AICall : IDisposable
                 var folderId = await aicall.GetJobsFolderIdAsync();
                 FileInfo file = new FileInfo(job.HTMLFileName);
                 //Uplod Jobfile
-                string jobPostFileId = await aicall.UploadFileAsync(job.TextFileName, job.TextFileContent);
+                string jobPostFileId = await aicall.UploadFileAsync(job.HTMLFileName, Encoding.UTF8.GetBytes(job.Text));
                 var statusJobPostFileId = await aicall.CheckFileStatusAsync(jobPostFileId);
 
                 //Upload Resume file
-                string resumeFileId = await aicall.UploadFileAsync("resume.txt");
+                string resumeFileId = await aicall.UploadFileAsync("resume.txt", File.ReadAllBytes("resume.txt"));
                 var statusResumeFileId = await aicall.CheckFileStatusAsync(resumeFileId);
 
                 //Create a Chat with these two files 
@@ -402,25 +402,37 @@ public partial class AICall : IDisposable
                 try
                 {
                     var content = completionResponse.choices[0].message.content.Cleanup();
-
-
                     aiResponse = JsonConvert.DeserializeObject<AIResponse>(content);
-                    Utilities.Logger.Information($"deserialized content: {content} is {ellapsed} ms");
-                    File.WriteAllText(job.JsonFileName, JsonConvert.SerializeObject(aiResponse));
+
+                    if(aiResponse != null)
+                    {
+                        //job.AIResponse = aiResponse;
+                        job.Matched = aiResponse.matched;
+                        job.Coverletter = aiResponse.coverletter;
+                        job.MissingRequirements = aiResponse.missing_requirements.ToList();
+                        job.JobRequirements = aiResponse.job_requirements.ToList();
+                        job.Reason = aiResponse.reason;
+                        job.Title = aiResponse.jobtitle;
+                        job.ProfessionalSummary = aiResponse.professional_summary;
+                        job.SuggestedResume = aiResponse.suggested_resume;
+                    }
+
+                    return new Response<JobObject>(job);
+
                 }
                 catch (Exception exp)
                 {
                     Utilities.Logger.Error(exp.Message);
-                    throw exp;
+                    return new Response<JobObject>(job);
                 }
-                return aiResponse;
+                
             }
         }
         catch (Exception exp)
         {
-            File.WriteAllText(job.JsonFileName, JsonConvert.SerializeObject(completionResponse));
+            //File.WriteAllText(job.JsonFileName, JsonConvert.SerializeObject(completionResponse));
             Utilities.Logger.Error(exp.Message);
-            return null;
+            return new Response<JobObject>(job);
         }
     }
 
