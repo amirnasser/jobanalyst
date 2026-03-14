@@ -7,9 +7,6 @@
     <Compile Update="FrmJobDetail.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="FrmJobDetailPartial.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>

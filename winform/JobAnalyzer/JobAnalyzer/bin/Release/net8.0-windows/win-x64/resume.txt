@@ -1,0 +1,80 @@
+﻿Amirhossein Nassergivchi
+Solution Architect & Senior Software Developer
+Richmond Hill, ON, Canada
+amir.nasser@gmail.com | 416‑931‑5050 | amirnasser.ca
+
+Professional Summary
+Innovative and results‑driven Solution Architect and Senior Software Developer with 15+ years of experience designing secure, high‑performance, event‑driven, and cloud‑native systems. Expert in distributed architectures, microservices, data modeling, and automation. Adept at leading engineering teams, modernizing legacy platforms, and delivering scalable solutions across web, cloud, and hybrid environments. Passionate about blending intuitive design with robust architecture to create software that lasts.
+
+Technical Skills
+Software Architecture & Development
+- Event‑Driven Systems: RabbitMQ, Kafka patterns, pub/sub, distributed messaging
+- Languages & Frameworks: C#, .NET Framework/Core, PHP, Laravel, Symfony, ASP.NET MVC, Entity Framework (data modeling, migrations), JavaScript, TypeScript
+- Front‑End: Angular, Vue.js, Blazor, KnockoutJS, HTML5, CSS
+- Microservices Architecture: service decomposition, API gateways, distributed tracing, resilience patterns
+- Distributed Caching: Redis (caching, pub/sub, session storage), NCache
+- Search & Indexing: Elasticsearch integration for analytics and full‑text search
+- Testing: xUnit, NUnit, Moq, integration testing, automated test pipelines
+- CI/CD & DevOps: GitHub Actions, Azure DevOps, automated deployments, release pipelines
+- Containerization: Docker, Docker Swarm, Kubernetes
+- API Design: REST, WCF, routing, versioning, authentication, Kong API Gateway
+- Performance & Optimization: advanced SQL Server tuning, query optimization, caching strategies
+- Cloud Platforms: Azure, AWS, GCP
+- Monitoring & Observability: Grafana, logging pipelines, distributed tracing
+Database Management
+- SQL Server (advanced optimization), MySQL, PostgreSQL, Oracle, MongoDB
+- Stored procedures, indexing strategies, relational & NoSQL schema design
+Business Intelligence & Analytics
+- Power BI, Looker, Tableau
+- Data modeling, reporting pipelines, dashboard development
+System Administration
+- Linux (CentOS, Debian, Ubuntu), Windows Server
+- Networking, firewalls, virtualization (ESXi), security hardening
+
+Professional Experience
+WebNeat (Consulting Firm)
+Founder & Senior Solution Architect / Consultant — 2024–Present
+- Architecting event‑driven and microservices‑based systems using RabbitMQ, Redis, and Dockerized services.
+- Designing scalable data models using Entity Framework and optimizing SQL Server workloads.
+- Integrating Elasticsearch for real‑time search, analytics, and log indexing.
+- Building CI/CD pipelines with automated testing (xUnit/NUnit/Moq) and containerized deployments.
+- Leading modernization projects involving cloud migration, distributed caching, and API gateway integration.
+- Managing on‑premise and cloud infrastructure, including Kubernetes clusters and secure networking.
+- Advising organizations on data governance, compliance, and modernization of legacy systems.
+
+Whitecap Canada
+Solution Architect & Senior Software Developer — 2010–2024
+- Designed and implemented distributed, event‑driven components using message queues and caching layers.
+- Built scalable microservices and APIs using .NET, Entity Framework, and SQL Server optimization techniques.
+- Integrated Elasticsearch for high‑performance search and analytics features.
+- Developed internal tools that automated deployments, improved reliability, and reduced manual effort.
+- Implemented CI/CD pipelines and containerized workloads to streamline delivery.
+- Delivered enterprise‑grade solutions for clients including Woodbine Entertainment Group, Miele Canada, Park’N Fly, and others.
+- Improved system performance through caching strategies (Redis), query optimization, and architectural refactoring.
+
+Hub International
+Software Developer — 2009–2010
+- Customized and extended PHP‑based HR systems with optimized data models and workflows.
+- Improved system performance through database tuning and modular architecture.
+
+Earlier Roles (2005–2009)
+Intermediate Developer — Bobac CFS, e‑Rational Solutions, Bizinabz
+- Built ERP/CRM systems, optimized MySQL databases, and developed PHP/C# service layers.
+- Designed data models, implemented SOAP/REST services, and improved system reliability.
+- Delivered reporting, automation, and integration features across logistics and semiconductor industries.
+
+Projects & Tools
+- EasyCopy — Deployment automation tool
+- WebDeploy — CI/CD‑driven web deployment system
+- RestAndWcfServiceTester — API/service testing utility
+- Distributed Caching Layer — Redis/NCache‑based caching for high‑traffic applications
+- Elasticsearch Analytics Module — Real‑time indexing and search for enterprise clients
+
+Leadership & Collaboration
+- Mentored developers, led agile teams, and improved engineering workflows.
+- Advocated for automation, testing culture, and architectural best practices.
+
+Certifications
+- Microsoft ASP.NET Development Certification
+- Kentico CRM Certification
+- Python Certification – Scaler Academ

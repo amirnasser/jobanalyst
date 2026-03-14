@@ -1,0 +1,15 @@
+2026-03-13 23:19:23.957 -04:00 [ERR] Error rendering template
+System.InvalidOperationException: The instance of CoreWebView2 is uninitialized and unable to complete this operation. See EnsureCoreWebView2Async.
+   at Microsoft.Web.WebView2.WinForms.WebView2.VerifyInitializedGuard()
+   at Microsoft.Web.WebView2.WinForms.WebView2.NavigateToString(String htmlContent)
+   at JobAnalyzer.FrmJobDetail.RenderAsync() in E:\Projects\JobAnalyst\winform\JobAnalyzer\JobAnalyzer\FrmJobDetail.cs:line 868
+2026-03-13 23:21:38.054 -04:00 [ERR] Error rendering template
+System.InvalidOperationException: The instance of CoreWebView2 is uninitialized and unable to complete this operation. See EnsureCoreWebView2Async.
+   at Microsoft.Web.WebView2.WinForms.WebView2.VerifyInitializedGuard()
+   at Microsoft.Web.WebView2.WinForms.WebView2.NavigateToString(String htmlContent)
+   at JobAnalyzer.FrmJobDetail.RenderAsync() in E:\Projects\JobAnalyst\winform\JobAnalyzer\JobAnalyzer\FrmJobDetail.cs:line 868
+2026-03-13 23:27:31.465 -04:00 [ERR] Error rendering template
+System.InvalidOperationException: The instance of CoreWebView2 is uninitialized and unable to complete this operation. See EnsureCoreWebView2Async.
+   at Microsoft.Web.WebView2.WinForms.WebView2.VerifyInitializedGuard()
+   at Microsoft.Web.WebView2.WinForms.WebView2.NavigateToString(String htmlContent)
+   at JobAnalyzer.FrmJobDetail.RenderAsync() in E:\Projects\JobAnalyst\winform\JobAnalyzer\JobAnalyzer\FrmJobDetail.cs:line 868
