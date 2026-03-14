@@ -104,6 +104,7 @@ namespace JobAnalyzer
             imageList1 = new ImageList(components);
             statusStrip1 = new StatusStrip();
             txtStatus = new ToolStripStatusLabel();
+            txtTimer = new ToolStripStatusLabel();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             lblJobCount = new ToolStripStatusLabel();
             lstJobs = new ListBox();
@@ -129,7 +130,6 @@ namespace JobAnalyzer
             toolStripMenuItem3 = new ToolStripSeparator();
             mnuAsc = new ToolStripMenuItem();
             mnuDesc = new ToolStripMenuItem();
-            txtTimer = new ToolStripStatusLabel();
             pnlForm.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)bs).BeginInit();
             toolStrip1.SuspendLayout();
@@ -846,10 +846,15 @@ namespace JobAnalyzer
             // txtStatus
             // 
             txtStatus.Name = "txtStatus";
-            txtStatus.Size = new Size(1031, 17);
+            txtStatus.Size = new Size(1062, 17);
             txtStatus.Spring = true;
             txtStatus.Text = "toolStripStatusLabel1";
             txtStatus.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // txtTimer
+            // 
+            txtTimer.Name = "txtTimer";
+            txtTimer.Size = new Size(0, 17);
             // 
             // toolStripStatusLabel1
             // 
@@ -1054,11 +1059,6 @@ namespace JobAnalyzer
             mnuDesc.Text = "Sort Descending";
             mnuDesc.Click += mnuDec_Click;
             // 
-            // txtTimer
-            // 
-            txtTimer.Name = "txtTimer";
-            txtTimer.Size = new Size(0, 17);
-            // 
             // FrmJobDetail
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1072,9 +1072,10 @@ namespace JobAnalyzer
             Controls.Add(toolStrip1);
             Controls.Add(menuStrip1);
             Controls.Add(pnlForm);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
             Name = "FrmJobDetail";
-            Text = "Job Detail";
+            Text = "Job Analyzer";
             WindowState = FormWindowState.Maximized;
             Load += FrmJobDetail_Load;
             pnlForm.ResumeLayout(false);
