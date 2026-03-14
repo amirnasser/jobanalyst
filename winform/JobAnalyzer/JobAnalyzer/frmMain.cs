@@ -42,7 +42,7 @@ namespace JobAnalyzer
         public List<JobObject> JobList = new List<JobObject>();
         private List<ListboxItem> Files = new List<ListboxItem>();
 
-        public string JobFilesPath { get; set; }
+        public string Folder { get; set; }
 
         private string tmpFilename;
         private ModelResponse modelResponse;
@@ -69,7 +69,7 @@ namespace JobAnalyzer
 
                 if (Directory.Exists(path))
                 {
-                    JobFilesPath = path;
+                    Folder = path;
                     LoadFilesFromDirectory();
                     File.WriteAllText("current_folder.txt", path);
                 }
@@ -105,10 +105,10 @@ namespace JobAnalyzer
                     Thread.Sleep(10000);
 
                     Utilities.Logger.Information($"File `{e.FullPath}` downloaded and start procecessing... ");
-                    JobObject job = new JobObject(e.FullPath);
+                    JobObject job = new JobObject(Folder, e.FullPath);
                     using (AICall aicall = new AICall())
                     {
-                        aicall.GetResponseAsync(job);
+                        aicall.UploadAndProcess(path, job);
                         Utilities.Logger.Information($"Processing of file `{e.FullPath}` done. ");
                     }
                 }
@@ -120,11 +120,10 @@ namespace JobAnalyzer
         private BLL.Response<List<JobObject>> LoadFilesFromDirectory()
         {
             try
-            {
-                MonitorFolder(JobFilesPath);
-                var files = Directory.GetFiles(JobFilesPath, "*.html", SearchOption.TopDirectoryOnly).
-                    Concat(Directory.GetFiles(JobFilesPath, "*.job.json")).ToArray();
-                var jobs = files.Select(f => new JobObject(f)).ToList();
+            {                
+                var files = Directory.GetFiles(Folder, "*.html", SearchOption.TopDirectoryOnly).
+                    Concat(Directory.GetFiles(Folder, "*.job.json")).ToArray();
+                var jobs = files.Select(f => new JobObject(Folder, f)).ToList();
 
                 bs.DataSource = new BindingList<JobObject>(jobs);
                 lstJobPosts.DataSource = bs;
@@ -134,7 +133,7 @@ namespace JobAnalyzer
             catch (Exception exp)
             {
                 //MessageBox.Show($"Error loading files: {exp.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _logger?.Error(exp, "Error loading files from directory {Path}", JobFilesPath);
+                _logger?.Error(exp, "Error loading files from directory {Path}", Folder);
                 return new Response<List<JobObject>>(exp);
             }
         }
@@ -198,10 +197,10 @@ namespace JobAnalyzer
 
                 if (File.Exists("current_folder.txt"))
                 {
-                    JobFilesPath = File.ReadAllText("current_folder.txt");
+                    Folder = File.ReadAllText("current_folder.txt");
                 }
 
-                if (!string.IsNullOrEmpty(JobFilesPath) && Directory.Exists(JobFilesPath))
+                if (!string.IsNullOrEmpty(Folder) && Directory.Exists(Folder))
                 {
                     LoadFilesFromDirectory();
                 }
@@ -498,14 +497,14 @@ namespace JobAnalyzer
             {
                 JobObject current = bs.Current as JobObject;
 
-                var newfolder = Path.Combine(JobFilesPath, lstJobPosts.SelectedItem.ToString());
+                var newfolder = Path.Combine(Folder, lstJobPosts.SelectedItem.ToString());
 
                 if (!Directory.Exists(newfolder))
                 {
                     Directory.CreateDirectory(newfolder);
                 }
 
-                var jsonfile = Path.Combine(JobFilesPath, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json"));
+                var jsonfile = Path.Combine(Folder, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json"));
                 if (File.Exists(jsonfile))
                 {
                     //File.Copy(jsonfile, Path.Combine(newfolder, lstJobPosts.SelectedItem.ToString().Replace(".html", ".json")), true);
@@ -586,8 +585,8 @@ namespace JobAnalyzer
             if (lstJobPosts.Items.Count >= 0)
             {
 
-                List<FileInfo> files = Directory.GetFiles(JobFilesPath, "*.html", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
-                List<FileInfo> processed = Directory.GetFiles(JobFilesPath, "*.json", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+                List<FileInfo> files = Directory.GetFiles(Folder, "*.html", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+                List<FileInfo> processed = Directory.GetFiles(Folder, "*.json", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
 
 
                 if (files.Count > processed.Count)
@@ -624,7 +623,7 @@ namespace JobAnalyzer
                     {
                         using (AICall aicall = new AICall())
                         {
-                            await new AICall().GetResponseAsync(Path.Combine(JobFilesPath, file));
+                            //await new AICall().UploadAndProcess(Path.Combine(JobFilesPath, file));
                         }
                     }
                     catch (Exception exp)
@@ -685,7 +684,7 @@ namespace JobAnalyzer
 
             foreach (string file in exp)
             {
-                var item = await ProcessJobPostAsync(Path.Combine(JobFilesPath, file));
+                var item = await ProcessJobPostAsync(Path.Combine(Folder, file));
             }
             _logger?.Information("Background worker completed processing of {Count} files", exp?.Count ?? 0);
         }
@@ -736,11 +735,11 @@ namespace JobAnalyzer
         {
             if (lstJobPosts.SelectedItems.Count > 0)
             {
-                JobObject job = new JobObject(((ListboxItem)lstJobPosts.SelectedItem).File.FullName);
+                JobObject job = new JobObject(Folder, ((ListboxItem)lstJobPosts.SelectedItem).File.FullName);
                 SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".data", FileName = lstJobPosts.SelectedItem.ToString(), Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    JobObject jobj = new JobObject(((ListboxItem)lstJobPosts.SelectedItem).File.FullName);
+                    JobObject jobj = new JobObject(Folder, ((ListboxItem)lstJobPosts.SelectedItem).File.FullName);
                     jobj.ExportDataFile(saveFileDialog.FileName);
                 }
             }

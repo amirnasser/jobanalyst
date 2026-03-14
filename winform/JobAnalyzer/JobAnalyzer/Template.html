@@ -39,7 +39,7 @@
         }
     </style>
 </head>
-<body class="{{if model.Matched && model.Matched != ""}}matched{{end}} {{if model.applied && model.applied != null}}applied{{end}}">
+<body class="{{if model.Matched && model.Matched != ""}}matched{{end}} {{if model.Applied && model.Applied != null}}applied{{end}}">
 
     <h1>{{model.Title}}</h1>
     <h2>{{model.CompanyName}}</h2>
@@ -55,8 +55,7 @@
     {{ end }}
 
     {{if model.SuggestedResume}}
-    <h3>Suggested Resume</h3>
-    <div class="hidden" >{{model.SuggestedResume}}</div>
+
     {{end}}
 
     {{if model.JobRequirements && model.JobRequirements.size>0}}

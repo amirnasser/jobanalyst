@@ -10,7 +10,7 @@ public class HtmlCleanerAndBeautifier
     AICallSettings settings = new AICallSettings();
     public HtmlCleanerAndBeautifier()
     {
-        this.settings = new AICall.AICallSettings();
+        this.settings = new AICallSettings();
     }
     
     internal string getPrompt(string html)

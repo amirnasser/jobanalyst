@@ -3,6 +3,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
+using Microsoft.Extensions.Configuration;
+
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -12,15 +15,7 @@ namespace JobAnalyzer.BLL;
 
 public partial class AICall : IDisposable
 {
-    public class AICallSettings
-    {
-        public string BaseUrl { get; set; } = "http://10.1.20.61:3100";
-        public string ApiKey { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQzMjkzNmZkLTdmNGMtNDU3ZS04YjBkLWZmZGQ4OWUyMzliNyIsImV4cCI6MTc3NTUxMzQ4NSwianRpIjoiY2FhMWU0NGItZjM2MC00NjhiLTgzNDctMDc0M2ZkZDJhNGFmIn0.pvrMEyoopwpHTdjj2LJZr_3MQx3wQ5ShdF6Bk-8ZTqs";
-        public string Prompt { get; set; } = "Based on documents Am I good candidate for this job? return json object as follow where company is the name of job post company name , missing_requirements is the requirement that I am missing  otherwise empy array '[]' job_requirements is the job post requirement or skills otherwise empy array '[]', reason is why I am good candidate, coverletter generate cover letter for this job post, matched return boolean value true if I am a candiadate otherwisise false ,jobtitle is the job post title, and also I need to update my Professional Summary in my resume provide it also in profesional_summary and SUGGESTED RESUME AS HTML string of the json {'company': '','missing_requirements': [],'job_requirements': [], 'reason': '', 'coverletter': '','matched': true or false, 'jobtitle': '', professional_summary: '', suggested_resume: '' }";
-        public string Model { get; set; } = "gpt-oss:20b";
-    }
-
-    AICallSettings settings = new AICallSettings();
+    AICallSettings settings;
     private bool disposedValue;
 
     public AICall(AICallSettings _settings)
@@ -30,17 +25,21 @@ public partial class AICall : IDisposable
 
     public AICall()
     {
-        this.settings = new AICall.AICallSettings();
+        this.settings = LoadFromAppSetting();
     }
 
-    internal async Task<string> GetJobsFolderIdAsync()
+    private async Task<string> GetJobsFolderIdAsync()
     {
-        using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
+        var options = new RestClientOptions(this.settings.BaseUrl)
+        {
+            Authenticator = new JwtAuthenticator(this.settings.ApiKey)
+        };
+
+        using (var restClient = new RestClient(options))
         {
             try
             {
-                var response = await restClient
-                    .GetAsync(new RestRequest("/api/v1/folders/") { Authenticator = new JwtAuthenticator(this.settings.ApiKey) });
+                var response = await restClient.GetAsync(new RestRequest("/api/v1/folders/"));
 
                 if (!response.IsSuccessful)
                 {
@@ -60,13 +59,12 @@ public partial class AICall : IDisposable
             }
             catch (Exception exp)
             {
-
                 throw;
             }
         }
     }
 
-    internal async Task<string> UploadFileAsync(string filename)
+    private async Task<string> UploadFileAsync(string filename)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -104,7 +102,7 @@ public partial class AICall : IDisposable
         }
     }
 
-    internal async Task<string> UploadFileAsync(string filename, byte[] fileBytes)
+    private async Task<string> UploadFileAsync(string filename, byte[] fileBytes)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -143,7 +141,7 @@ public partial class AICall : IDisposable
         }
     }
 
-    internal async Task<string> CreateChatAsync(string jobpostfile, string folderId, string resumeFileId, string jobpostid)
+    private async Task<string> CreateChatAsync(string jobpostfile, string folderId, string resumeFileId, string jobpostid)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -205,13 +203,12 @@ public partial class AICall : IDisposable
             }
             catch (Exception exp)
             {
-                //Utilities.lo
                 throw;
             }
         }
     }
 
-    internal async Task<CheckFileStatusResponse> CheckFileStatusAsync(string fileId)
+    private async Task<CheckFileStatusResponse> CheckFileStatusAsync(string fileId)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -254,7 +251,7 @@ public partial class AICall : IDisposable
         }
     }
 
-    internal async Task<CompletionResponse> GetCompletionAsync(string chatId, string jobPostFileId, string resumeFileId)
+    private async Task<CompletionResponse> GetCompletionAsync(string chatId, string jobPostFileId, string resumeFileId)
     {
         using (RestSharp.RestClient restClient = new RestSharp.RestClient(this.settings.BaseUrl))
         {
@@ -293,29 +290,16 @@ public partial class AICall : IDisposable
 
                 var response = await restClient.PostAsync(request);
 
-                //if (!response.IsSuccessful)
-                //{
-                //    response.ThrowIfError();
-                //}
-
-                //dynamic data = JsonConvert.DeserializeObject(response.Content);
-
-                //if (data["id"] != null)
-                //{
-                //    return data["id"].ToString();
-                //}
-                                
                 return JsonConvert.DeserializeObject<CompletionResponse>(response.Content);
             }
             catch (Exception exp)
             {
-
-                throw;
+                throw exp;
             }
         }
     }
 
-    public async Task<AIResponse?> GetResponseAsync(string selectedFile)
+    private async Task<AIResponse?> GetResponseAsync(string selectedFile)
     {
         CompletionResponse completionResponse = new CompletionResponse();
         try
@@ -351,7 +335,6 @@ public partial class AICall : IDisposable
 
                     aiResponse = JsonConvert.DeserializeObject<AIResponse>(content);
                     Utilities.Logger.Information($"deserialized content: {content} is {ellapsed} ms");
-                    //File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(aiResponse));
                 }
                 catch (Exception exp)
                 {
@@ -363,13 +346,12 @@ public partial class AICall : IDisposable
         }
         catch (Exception exp)
         {
-            //File.WriteAllText(selectedFile.Replace(".html", ".json"), JsonConvert.SerializeObject(completionResponse));
             Utilities.Logger.Error(exp.Message);
             return null;
         }
     }
 
-    public async Task<Response<JobObject>> GetResponseAsync(JobObject job)
+    public async Task<Response<JobObject>> UploadAndProcess(string folder, JobObject job)
     {
         CompletionResponse completionResponse = new CompletionResponse();
         try
@@ -380,9 +362,9 @@ public partial class AICall : IDisposable
                 sw.Start();
 
                 var folderId = await aicall.GetJobsFolderIdAsync();
-                FileInfo file = new FileInfo(job.HTMLFileName);
+                FileInfo file = new FileInfo(Path.Combine(folder, job.DataFileName));
                 //Uplod Jobfile
-                string jobPostFileId = await aicall.UploadFileAsync(job.HTMLFileName, Encoding.UTF8.GetBytes(job.Text));
+                string jobPostFileId = await aicall.UploadFileAsync(job.DataFileName, Encoding.UTF8.GetBytes(job.Text));
                 var statusJobPostFileId = await aicall.CheckFileStatusAsync(jobPostFileId);
 
                 //Upload Resume file
@@ -406,7 +388,6 @@ public partial class AICall : IDisposable
 
                     if(aiResponse != null)
                     {
-                        //job.AIResponse = aiResponse;
                         job.Matched = aiResponse.matched;
                         job.Coverletter = aiResponse.coverletter;
                         job.MissingRequirements = aiResponse.missing_requirements.ToList();
@@ -430,10 +411,21 @@ public partial class AICall : IDisposable
         }
         catch (Exception exp)
         {
-            //File.WriteAllText(job.JsonFileName, JsonConvert.SerializeObject(completionResponse));
             Utilities.Logger.Error(exp.Message);
             return new Response<JobObject>(job);
         }
+    }
+
+    private AICallSettings LoadFromAppSetting()
+    {
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .Build();
+
+        var settings = new AICallSettings();
+        config.GetSection("AICallSettings").Bind(settings);
+        return settings;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -442,25 +434,14 @@ public partial class AICall : IDisposable
         {
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects)                 
             }
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
             disposedValue = true;
         }
     }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~AICall()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

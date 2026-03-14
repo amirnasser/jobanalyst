@@ -33,7 +33,7 @@ public partial class FrmJobDetail
                     //wv2.NavigateToString(result);
                 }
 
-                    lblJobCount.Text = Jobs.Count.ToString();
+                lblJobCount.Text = Jobs.Count.ToString();
                 bs.EndEdit();
             }
             catch (Exception exp)
@@ -80,11 +80,6 @@ public partial class FrmJobDetail
     {
         bs.EndEdit();
         var datatosave = ((IEnumerable<JobObject>)bs.DataSource).ToList();
-        //foreach (var job in datatosave)
-        //{
-        //    job.Text = job.HTML.GetText();
-        //    job.HTMLFileName = new FileInfo(job.HTMLFileName).Name;
-        //}
 
         SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".data", FileName = $"Jobs_{DateTime.Now:yyyyMMddHHmmss}.data", Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
         if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -108,7 +103,7 @@ public partial class FrmJobDetail
         {
             if (Current != null)
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".data", FileName = Current?.HTMLFileName.Replace(".html", ".data"), Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
+                SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".data", FileName = Current?.DataFileName.Replace(".html", ".data"), Filter = "All data files (*.data)|*.data|All files (*.*)|*.*" };
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     Current.ExportDataFile(saveFileDialog.FileName);
@@ -152,16 +147,19 @@ public partial class FrmJobDetail
     {
         if (Current != null && !JobsFromDb)
         {
-            var result = MessageBox.Show($"Are you sure you want to delete job `{Current.HTMLFileName}`?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var result = MessageBox.Show($"Are you sure you want to delete job `{Current.DataFileName}`?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
             {
                 try
                 {
-                    bs.Remove(Current);
-                    lstJobs.Items.RemoveAt(bs.Position);
-                    lblJobCount.Text = $"Jobs ({Jobs.Count})";
-                    bs.EndEdit();
+                    var fileToDelet = Path.Combine(Folder, Current?.DataFileName);
+                    Jobs.Remove(Current);
+                    bs.ResetBindings(true);
+                    //lstJobs.Items.RemoveAt(bs.Position);
+                    lblJobCount.Text = $"Jobs ({Jobs.Count})";                    
                     lblJobCount.Text = Jobs.Count.ToString();
+                    if(!string.IsNullOrEmpty(fileToDelet) && File.Exists(fileToDelet))
+                        File.Delete(fileToDelet);
                 }
                 catch (Exception exp)
                 {
@@ -182,7 +180,7 @@ public partial class FrmJobDetail
                     lblJobCount.Text = Jobs.Count.ToString();
                     return;
                 }
-                throw new Exception($"Failed to delete job `{Current.HTMLFileName}` from database. Please check the log for details.");
+                throw new Exception($"Failed to delete job `{Current.DataFileName}` from database. Please check the log for details.");
             }
             catch (Exception exp)
             {

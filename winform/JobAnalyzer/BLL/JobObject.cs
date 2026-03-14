@@ -27,34 +27,34 @@ public class JobObject
             return new Response<JobObject>(exp);
         }
     }
-    public JobObject(string file)
+    public JobObject(string path, string datafile)
     {
         try
         {
-            FileInfo fileinfo = new FileInfo(file);
+            FileInfo fileinfo = new FileInfo(Path.Combine(path, datafile));
 
-            if (File.Exists(file) && file.EndsWith(".json"))
+            if (File.Exists(fileinfo.FullName) && datafile.EndsWith(".json"))
             {
-                var fileContent = File.ReadAllText(file);
-                var job = JsonConvert.DeserializeObject<JobObject>(fileContent);
-                this.CopyFrom(job);
-                this.HTMLFileName = file;
+                var fileContent = File.ReadAllText(fileinfo.FullName);
+                this.CopyFrom(JsonConvert.DeserializeObject<JobObject>(fileContent));
+                //this.CopyFrom(job);
+                this.DataFileName = fileinfo.Name;
                 this.LastModified = fileinfo.LastWriteTime;
                 this.CreatedAt = fileinfo.CreationTime;
             }
-            else if (File.Exists(file) && file.EndsWith(".html"))
-            {             
-                this.HTMLFileName = file;
-                this.HTML = File.ReadAllText(file);                                
+            else if (File.Exists(fileinfo.FullName) && datafile.EndsWith(".html"))
+            {
+                this.DataFileName = fileinfo.Name; ;
+                this.HTML = File.ReadAllText(fileinfo.FullName);                                
                 this.Text = this.HTML.GetText();
                 this.LastModified = fileinfo.LastWriteTime;
                 this.CreatedAt = fileinfo.CreationTime;
 
-                if (File.Exists(file.Replace(".html", ".json")))
+                if (File.Exists(fileinfo.FullName.Replace(".html", ".json")))
                 {
                     try
                     {
-                        AIResponse aiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<AIResponse>(File.ReadAllText(file.Replace(".html", ".json")));
+                        AIResponse aiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<AIResponse>(File.ReadAllText(datafile.Replace(".html", ".json")));
                         if (aiResponse != null)
                         {
                             this.Reason = aiResponse.reason;
@@ -74,7 +74,7 @@ public class JobObject
             }
             else
             {
-                throw new FileNotFoundException(file);
+                throw new FileNotFoundException(datafile);
             }
         }
         catch (Exception exp)
@@ -82,19 +82,10 @@ public class JobObject
             Utilities.Logger.Error(exp);
         }
     }
-
-    public JobObject(string rootPath, JobFile jobfile)
-    {
-        this.HTMLFileName = Path.Combine(rootPath, $"{jobfile.timestamp}.html");
-        this.JobPostUrl = new Uri(jobfile.Url);
-        this.HTML = jobfile.Html.HtmlCleanup();
-    }
-
     public JobObject()
     {
 
     }
-
     public void ExportDataFile(string filename)
     {
         try
@@ -108,35 +99,34 @@ public class JobObject
             throw;
         }
     }
-
     public JobObject ImportDataFile(string filename)
     {
         byte[] bytes = File.ReadAllBytes(filename);
         return MessagePackSerializer.Deserialize<JobObject>(bytes);
     }
-
     public override string ToString()
     {
         try
         {
-            return string.IsNullOrEmpty(HTMLFileName) ? "" : HTMLFileName.ToShortname();
+            return DataFileName.ToShortname();
         }
         catch (Exception exp)
         {
-            return HTMLFileName;
+            return DataFileName;
             
         }
     }
 
+    [Key(16)]
+    public string? DataFileName { get; set; }
     [Key(20)]
     public DateTime? CreatedAt { get; set; } = DateTime.Now;
     [Key(27)]
     public DateTime? ProcessedAt { get; set; }
     [Key(28)]
-    public DateTime? AppliedAt { get; set; }
+    public DateTime? AppliedAt { get; set; } 
     [Key(21)]
     public  string Notes { get; set; }
-
     [Key(0)]
     public string id => JobPostUrl != null ? JobPostUrl.LocalPath.ToString().ToMd5Hash() : string.Empty;
     [Column(name: "company", TypeName = "varchar(50)")]
@@ -158,7 +148,6 @@ public class JobObject
     public string? Reason { get; set; }
     [Key(10)]
     public bool Matched { get; set; } = false;
-
     [Key(12)]
     public string? Title { get; set; } 
     [Key(22)]
@@ -177,73 +166,26 @@ public class JobObject
     public string HTML { get; set; }
     [IgnoreMember]
     public string? Text { get; set; }
-    [Key(16)]
-    public string? HTMLFileName { get; set; }
+
     [Key(30)]
     public DateTime LastModified { get; set; }
     [Key(31)]
     public string? ProfessionalSummary { get; set; }
-
     [Key(44)]
     public string CoverletterFile { get; set; } = null;
     [Key(45)]
     public string SuggestedResume { get; set; } = null;
-
     public static Response SaveAllToFile(string filename, List<JobObject> jobs)
     {
         byte[] bytes = MessagePackSerializer.Serialize(jobs);
         File.WriteAllBytes(filename, bytes);
         return new Response();
-
-        //try
-        //{
-        //    jobs = jobs.Where(job => job.JobPostUrl != null).ToList();
-        //    //Before saving set HtmlFileName, DataFieName, TextFilename, Text
-        //    jobs.ForEach(static job =>
-        //    {
-        //        try
-        //        {
-        //            job.id = job.JobPostUrl != null ? job.JobPostUrl.ToString().ToMd5Hash() : Guid.NewGuid().ToString();
-        //            job.HTMLFileName = job.AIResponse != null && !string.IsNullOrEmpty(job.AIResponse?.company) && !string.IsNullOrEmpty(job.AIResponse?.jobtitle) ? $"{job.CompanyName}_{job.JobTitle.Replace(" ", "")}" : job.HTMLFileName ?? $"{job.Shortname}.html";
-        //            job.DataFileContent = !string.IsNullOrEmpty(job.JsonFileName) && File.Exists(job.JsonFileName) ? File.ReadAllBytes(job.JsonFileName) : null;
-        //            job.Text = string.Empty;
-
-
-
-
-        //        }
-        //        catch (Exception exp)
-        //        {
-        //            Utilities.Logger.Error(exp.Message);
-        //        }
-        //    });
-
-        //    byte[] bytes = MessagePackSerializer.Serialize(jobs);
-        //    File.WriteAllBytes(filename, bytes);
-        //    return new Response();
-        //}
-        //catch (Exception exp)
-        //{
-        //    Utilities.Logger.Error(exp.Message);
-        //    return new Response(exp);
-        //}
     }
     public static Response<List<JobObject>> LoadAllFromFile(string filename)
     {
         try
         {
             List<JobObject> jobs = MessagePackSerializer.Deserialize<List<JobObject>>(File.ReadAllBytes(filename));
-            //foreach (var job in jobs)
-            //{
-            //    try
-            //    {
-            //        job.HTMLFileName = job.AIResponse == null ? $"{job.CompanyName}_{job.JobTitle.Replace(" ", "")}" : job.HTMLFileName ?? $"{job.Shortname}.html";
-            //    }
-            //    catch (Exception exp)
-            //    {
-
-            //    }
-            //}
             return new Response<List<JobObject>>(jobs);
         }
         catch (Exception exp)
@@ -274,22 +216,21 @@ public class JobObject
         this.Notes = result.Notes;
         this.SalaryRange = result.SalaryRange;
         this.Text = result.Text;
-        this.HTMLFileName = result.HTMLFileName;
+        this.DataFileName = result.DataFileName;
         this.AppliedAt = result.AppliedAt;
         this.CreatedAt = result.CreatedAt;
         this.ProfessionalSummary = result.ProfessionalSummary;
         this.SuggestedResume = result.SuggestedResume;
     }
-    public void Save()
+    public void Save(string folder)
     {
         try
         {
-            File.WriteAllText(this.HTMLFileName, JsonConvert.SerializeObject(this, new StringEnumConverter()));
+            File.WriteAllText(Path.Combine(folder, this.DataFileName), JsonConvert.SerializeObject(this, new StringEnumConverter()));
         }
         catch (Exception exp)
         {
             Utilities.Logger.Error(exp);
         }
     }    
-
 }

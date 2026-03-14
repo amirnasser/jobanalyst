@@ -72,7 +72,7 @@ public static class Extensions
 
     public static string ToShortname(this string filename)
     {
-        if (filename != null && File.Exists(filename))
+        if (filename != null)
         {
             var file = new FileInfo(filename);
             return string.IsNullOrEmpty(file.Extension) ? file.Name : file.Name.Replace(file.Extension, string.Empty);

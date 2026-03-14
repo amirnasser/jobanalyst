@@ -31,6 +31,7 @@ namespace JobAnalyzer
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmJobDetail));
             pnlForm = new Panel();
             btnExperience = new Button();
             label15 = new Label();
@@ -99,12 +100,18 @@ namespace JobAnalyzer
             btnSaveToDb = new ToolStripButton();
             btnTuggle = new ToolStripButton();
             toolStripSeparator6 = new ToolStripSeparator();
+            btnCreatFolder = new ToolStripButton();
             imageList1 = new ImageList(components);
             statusStrip1 = new StatusStrip();
             txtStatus = new ToolStripStatusLabel();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             lblJobCount = new ToolStripStatusLabel();
             lstJobs = new ListBox();
+            cmenu = new ContextMenuStrip(components);
+            deleteTSM = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripSeparator();
+            sortAToolStripMenuItem = new ToolStripMenuItem();
+            sortDescendingToolStripMenuItem = new ToolStripMenuItem();
             wv1 = new Microsoft.Web.WebView2.WinForms.WebView2();
             wv2 = new Microsoft.Web.WebView2.WinForms.WebView2();
             splitContainer1 = new SplitContainer();
@@ -119,10 +126,15 @@ namespace JobAnalyzer
             mnuDelete = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
             mnuJobsFromDb = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
+            mnuAsc = new ToolStripMenuItem();
+            mnuDesc = new ToolStripMenuItem();
+            txtTimer = new ToolStripStatusLabel();
             pnlForm.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)bs).BeginInit();
             toolStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
+            cmenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)wv1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)wv2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -574,7 +586,7 @@ namespace JobAnalyzer
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnProcess, btnLoadJobs, btnSaveJob, btnSaveAllJson, btnRefreshFolder, toolStripSeparator5, btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, toolStripButton1, btnExport, btnChrome, btnDelete, btnOpen, toolStripSeparator2, toolStripSeparator3, btnLoad, btnSaveAll, toolStripSeparator4, btnSaveToDb, btnTuggle, toolStripSeparator6 });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnProcess, btnLoadJobs, btnSaveJob, btnSaveAllJson, btnRefreshFolder, toolStripSeparator5, btnFirst, btnPrev, btnNext, btnLast, toolStripSeparator1, toolStripButton1, btnExport, btnChrome, btnDelete, btnOpen, toolStripSeparator2, toolStripSeparator3, btnLoad, btnSaveAll, toolStripSeparator4, btnSaveToDb, btnTuggle, toolStripSeparator6, btnCreatFolder });
             toolStrip1.Location = new Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1184, 25);
@@ -730,6 +742,7 @@ namespace JobAnalyzer
             btnDelete.Size = new Size(23, 22);
             btnDelete.Text = "toolStripButton1";
             btnDelete.ToolTipText = "Delete Job";
+            btnDelete.Click += btnDelete_Click;
             // 
             // btnOpen
             // 
@@ -806,6 +819,15 @@ namespace JobAnalyzer
             toolStripSeparator6.Name = "toolStripSeparator6";
             toolStripSeparator6.Size = new Size(6, 25);
             // 
+            // btnCreatFolder
+            // 
+            btnCreatFolder.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnCreatFolder.Image = (Image)resources.GetObject("btnCreatFolder.Image");
+            btnCreatFolder.ImageTransparentColor = Color.Magenta;
+            btnCreatFolder.Name = "btnCreatFolder";
+            btnCreatFolder.Size = new Size(23, 22);
+            btnCreatFolder.Text = "toolStripButton2";
+            // 
             // imageList1
             // 
             imageList1.ColorDepth = ColorDepth.Depth32Bit;
@@ -814,7 +836,7 @@ namespace JobAnalyzer
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { txtStatus, toolStripStatusLabel1, lblJobCount });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { txtStatus, txtTimer, toolStripStatusLabel1, lblJobCount });
             statusStrip1.Location = new Point(0, 883);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1184, 22);
@@ -824,7 +846,7 @@ namespace JobAnalyzer
             // txtStatus
             // 
             txtStatus.Name = "txtStatus";
-            txtStatus.Size = new Size(1062, 17);
+            txtStatus.Size = new Size(1031, 17);
             txtStatus.Spring = true;
             txtStatus.Text = "toolStripStatusLabel1";
             txtStatus.TextAlign = ContentAlignment.MiddleLeft;
@@ -845,6 +867,7 @@ namespace JobAnalyzer
             // lstJobs
             // 
             lstJobs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            lstJobs.ContextMenuStrip = cmenu;
             lstJobs.FormattingEnabled = true;
             lstJobs.ItemHeight = 15;
             lstJobs.Location = new Point(12, 78);
@@ -852,6 +875,38 @@ namespace JobAnalyzer
             lstJobs.Size = new Size(252, 799);
             lstJobs.TabIndex = 4;
             lstJobs.SelectedIndexChanged += lstJobs_SelectedIndexChanged;
+            // 
+            // cmenu
+            // 
+            cmenu.Items.AddRange(new ToolStripItem[] { deleteTSM, toolStripMenuItem4, sortAToolStripMenuItem, sortDescendingToolStripMenuItem });
+            cmenu.Name = "contextMenuStrip1";
+            cmenu.Size = new Size(161, 76);
+            // 
+            // deleteTSM
+            // 
+            deleteTSM.Image = ImageResource.g30_16;
+            deleteTSM.Name = "deleteTSM";
+            deleteTSM.ShortcutKeys = Keys.Delete;
+            deleteTSM.Size = new Size(160, 22);
+            deleteTSM.Text = "Delete";
+            deleteTSM.Click += deleteTSM_Click;
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(157, 6);
+            // 
+            // sortAToolStripMenuItem
+            // 
+            sortAToolStripMenuItem.Name = "sortAToolStripMenuItem";
+            sortAToolStripMenuItem.Size = new Size(160, 22);
+            sortAToolStripMenuItem.Text = "Sort Ascending";
+            // 
+            // sortDescendingToolStripMenuItem
+            // 
+            sortDescendingToolStripMenuItem.Name = "sortDescendingToolStripMenuItem";
+            sortDescendingToolStripMenuItem.Size = new Size(160, 22);
+            sortDescendingToolStripMenuItem.Text = "Sort Descending";
             // 
             // wv1
             // 
@@ -940,7 +995,7 @@ namespace JobAnalyzer
             // 
             // databaseToolStripMenuItem
             // 
-            databaseToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveToDBToolStripMenuItem, toolStripMenuItem1, mnuDelete, toolStripMenuItem2, mnuJobsFromDb });
+            databaseToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveToDBToolStripMenuItem, toolStripMenuItem1, mnuDelete, toolStripMenuItem2, mnuJobsFromDb, toolStripMenuItem3, mnuAsc, mnuDesc });
             databaseToolStripMenuItem.Name = "databaseToolStripMenuItem";
             databaseToolStripMenuItem.Size = new Size(42, 20);
             databaseToolStripMenuItem.Text = "&Jobs";
@@ -949,34 +1004,60 @@ namespace JobAnalyzer
             // 
             saveToDBToolStripMenuItem.Name = "saveToDBToolStripMenuItem";
             saveToDBToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
-            saveToDBToolStripMenuItem.Size = new Size(202, 22);
+            saveToDBToolStripMenuItem.Size = new Size(225, 22);
             saveToDBToolStripMenuItem.Text = "&Save to DB";
             saveToDBToolStripMenuItem.Click += saveToDBToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(199, 6);
+            toolStripMenuItem1.Size = new Size(222, 6);
             // 
             // mnuDelete
             // 
             mnuDelete.Name = "mnuDelete";
-            mnuDelete.ShortcutKeys = Keys.Delete;
-            mnuDelete.Size = new Size(202, 22);
+            mnuDelete.ShortcutKeys = Keys.Control | Keys.Delete;
+            mnuDelete.Size = new Size(225, 22);
             mnuDelete.Text = "&Delete";
             mnuDelete.Click += mnuDelete_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(199, 6);
+            toolStripMenuItem2.Size = new Size(222, 6);
             // 
             // mnuJobsFromDb
             // 
             mnuJobsFromDb.Name = "mnuJobsFromDb";
-            mnuJobsFromDb.Size = new Size(202, 22);
+            mnuJobsFromDb.Size = new Size(225, 22);
             mnuJobsFromDb.Text = "&Load All From Databas";
             mnuJobsFromDb.Click += mnuJobsFromDb_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(222, 6);
+            // 
+            // mnuAsc
+            // 
+            mnuAsc.Name = "mnuAsc";
+            mnuAsc.ShortcutKeys = Keys.Control | Keys.Up;
+            mnuAsc.Size = new Size(225, 22);
+            mnuAsc.Text = "Sort Ascending";
+            mnuAsc.Click += mnuAcc_Click;
+            // 
+            // mnuDesc
+            // 
+            mnuDesc.Name = "mnuDesc";
+            mnuDesc.ShortcutKeys = Keys.Control | Keys.Down;
+            mnuDesc.Size = new Size(225, 22);
+            mnuDesc.Text = "Sort Descending";
+            mnuDesc.Click += mnuDec_Click;
+            // 
+            // txtTimer
+            // 
+            txtTimer.Name = "txtTimer";
+            txtTimer.Size = new Size(0, 17);
             // 
             // FrmJobDetail
             // 
@@ -1003,6 +1084,7 @@ namespace JobAnalyzer
             toolStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            cmenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)wv1).EndInit();
             ((System.ComponentModel.ISupportInitialize)wv2).EndInit();
             splitContainer1.Panel1.ResumeLayout(false);
@@ -1105,5 +1187,15 @@ namespace JobAnalyzer
         private DateTimePicker dtpCreate;
         private ToolStripButton btnSaveAllJson;
         private Button btnExperience;
+        private ContextMenuStrip cmenu;
+        private ToolStripMenuItem deleteTSM;
+        private ToolStripSeparator toolStripMenuItem3;
+        private ToolStripMenuItem mnuAsc;
+        private ToolStripMenuItem mnuDesc;
+        private ToolStripSeparator toolStripMenuItem4;
+        private ToolStripMenuItem sortAToolStripMenuItem;
+        private ToolStripMenuItem sortDescendingToolStripMenuItem;
+        private ToolStripButton btnCreatFolder;
+        private ToolStripStatusLabel txtTimer;
     }
 }

@@ -1,85 +1,221 @@
 ﻿using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using JobAnalyzer.BLL;
 using JobAnalyzer.Data;
-using Newtonsoft.Json.Bson;
-using Scriban;
-using Scriban.Runtime;
 
 namespace JobAnalyzer
 {
     public partial class FrmJobDetail : Form
     {
-        #region Form Property
-        public static List<JobObject> Jobs;
-        public static List<JobObject> DbJobs;
+        #region Fields & Properties
+
+        public static List<JobObject> Jobs = new();
+        public static List<JobObject> DbJobs = new();
         public bool JobsFromDb { get; set; }
-        JobObject Current { get; set; }
-        public string Folder { get; set; }
+        public string Folder { get; set; } = string.Empty;
         public int JobCount => bs.List?.Count ?? 0;
         public const string CURRENT_FOLDER = "current_folder.txt";
 
+
+        private JobObject? Current { get; set; }
+        private FileSystemWatcher? fileSystemWatcher;
+
+        /// <summary>Tracks all in-flight processing tasks so the wait cursor stays on until every one completes.</summary>
+        private readonly List<Task> _processingTasks = new();
+        private readonly Dictionary<string, CancellationTokenSource> _pendingFileEvents = new();
+        private readonly TimeSpan _debounceDelay = TimeSpan.FromMilliseconds(500);
+
+        /// <summary>Elapsed timer shown in the status bar during processing.</summary>
+        private readonly System.Windows.Forms.Timer _elapsedTimer = new() { Interval = 1000 };
+        private DateTime _timerStart;
+
         #endregion
 
-        #region Form Methods
+        #region Constructor & Initialization
+
         public FrmJobDetail()
         {
+            InitializeComponent();
+
+            _elapsedTimer.Tick += ElapsedTimer_Tick;
+            txtTimer.Text = "00:00:00";
+
             if (File.Exists(CURRENT_FOLDER))
             {
-                Folder = File.ReadAllText(CURRENT_FOLDER);
+                Folder = File.ReadAllText(CURRENT_FOLDER).Trim();
                 Jobs = GetJobs(Folder);
+                CreateFileSystemWatcher();
             }
             else
             {
                 OpenLoadDialogAndLoadJobs();
             }
-
-            InitializeComponent();
-        }
-
-        private void OpenLoadDialogAndLoadJobs()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog()
-            {
-                DefaultExt = ".json",
-                Filter = "Json files (*.json)|*.html|All files (*.*)|*.*",
-                CheckFileExists = false,
-                FileName = "Select any job file in the folder to load all jobs from that folder"
-
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                Folder = Path.GetDirectoryName(openFileDialog.FileName);
-                File.WriteAllText(CURRENT_FOLDER, Folder);
-                Jobs = GetJobs(Folder);
-            }
         }
 
         private async void FrmJobDetail_Load(object sender, EventArgs e)
         {
-            await SetBindin(Jobs);
+            await SetBindingAsync();
         }
 
-        private async Task SetBindin(List<JobObject> jobs)
+        #endregion
+
+        #region FileSystemWatcher
+
+        private void CreateFileSystemWatcher()
         {
-            if (jobs != null)
+            fileSystemWatcher?.Dispose();
+
+            if (string.IsNullOrWhiteSpace(Folder) || !Directory.Exists(Folder))
+                return;
+
+            fileSystemWatcher = new FileSystemWatcher(Folder, "*.json")
             {
-                bs.DataSource = new BindingList<JobObject>(jobs);
-                bs.ResetBindings(false);
-                //bs.Position = 0;
-                lblJobCount.Text = jobs.Count.ToString();
-                lstJobs.DataSource = new BindingList<JobObject>(jobs);
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                IncludeSubdirectories = false,
+                SynchronizingObject = this,
+                EnableRaisingEvents = true
+            };
 
-                bs.ResetBindings(true);
-                var id = Current.id;
-                //Repository.FindJobsById(id);
+            fileSystemWatcher.Created += OnFileChanged;
+            fileSystemWatcher.Changed += OnFileChanged;
+            fileSystemWatcher.Deleted += OnFileChanged;
+        }
 
-                await wv1.EnsureCoreWebView2Async();
-                await wv2.EnsureCoreWebView2Async();
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
+            // Cancel any previous pending event for the same file (debounce)
+            if (_pendingFileEvents.TryGetValue(e.FullPath, out var previousCts))
+            {
+                previousCts.Cancel();
+                previousCts.Dispose();
+                _pendingFileEvents.Remove(e.FullPath);
+            }
+
+            var cts = new CancellationTokenSource();
+            _pendingFileEvents[e.FullPath] = cts;
+
+            // Capture event args before the async call
+            var changeType = e.ChangeType;
+            var fullPath = e.FullPath;
+            var name = e.Name;
+
+            _ = HandleFileEventAsync(changeType, fullPath, name, cts.Token);
+        }
+
+        private async Task HandleFileEventAsync(WatcherChangeTypes changeType, string fullPath, string? name, CancellationToken token)
+        {
+            try
+            {
+                // Debounce: wait before processing (resets if another event fires for the same file)
+                await Task.Delay(_debounceDelay, token).ConfigureAwait(true);
+
+                if (token.IsCancellationRequested)
+                    return;
+
+                switch (changeType)
+                {
+                    case WatcherChangeTypes.Created:
+                    case WatcherChangeTypes.Changed:
+                        // Wait until the file is fully written and readable
+                        if (!await WaitForFileReadyAsync(fullPath, token))
+                        {
+                            Utilities.Logger.Warning("File never became readable: {Path}", fullPath);
+                            return;
+                        }
+
+                        var existing = Jobs.FirstOrDefault(j => j.DataFileName.Equals(fullPath));
+                        if (existing != null)
+                        {
+                            existing.CopyFrom(new JobObject(Folder, fullPath));
+                            bs.EndEdit();
+                            bs.ResetBindings(false);
+                        }
+                        else
+                        {
+                            Jobs.Add(new JobObject(Folder, name));
+                            bs.ResetBindings(true);
+                        }
+                        break;
+
+                    case WatcherChangeTypes.Deleted:
+                        var toRemove = Jobs.FirstOrDefault(j => j.DataFileName.Equals(fullPath));
+                        if (toRemove != null)
+                        {
+                            Jobs.Remove(toRemove);
+                            bs.DataSource = new BindingList<JobObject>(Jobs);
+                            bs.ResetBindings(true);
+                        }
+                        break;
+                }
+
+                lblJobCount.Text = Jobs.Count.ToString();
+            }
+            catch (OperationCanceledException)
+            {
+                // Debounce cancelled — a newer event superseded this one
+            }
+            catch (Exception ex)
+            {
+                Utilities.Logger.Error(ex, "Error handling file system event for {Path}", fullPath);
+            }
+            finally
+            {
+                _pendingFileEvents.Remove(fullPath);
+            }
+        }
+
+        /// <summary>
+        /// Polls until the file can be opened exclusively (meaning no other process is writing to it).
+        /// Returns false if the file never becomes available within the timeout.
+        /// </summary>
+        private static async Task<bool> WaitForFileReadyAsync(string filePath, CancellationToken token, int maxAttempts = 20, int delayMs = 300)
+        {
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                token.ThrowIfCancellationRequested();
+
+                try
+                {
+                    // Try to open with no sharing — if another process is still writing, this throws
+                    using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                    return true;
+                }
+                catch (IOException)
+                {
+                    // File is still locked by the writer
+                    await Task.Delay(delayMs, token).ConfigureAwait(true);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    await Task.Delay(delayMs, token).ConfigureAwait(true);
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region Data Loading
+
+        private void OpenLoadDialogAndLoadJobs()
+        {
+            using var openFileDialog = new OpenFileDialog
+            {
+                DefaultExt = ".json",
+                Filter = "Json files (*.json)|*.json|All files (*.*)|*.*",
+                CheckFileExists = false,
+                FileName = "Select any job file in the folder to load all jobs from that folder"
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                Folder = Path.GetDirectoryName(openFileDialog.FileName) ?? string.Empty;
+                File.WriteAllText(CURRENT_FOLDER, Folder);
+                Jobs = GetJobs(Folder);
+                CreateFileSystemWatcher();
             }
         }
 
@@ -87,92 +223,106 @@ namespace JobAnalyzer
         {
             try
             {
-                List<JobObject> jobs = new List<JobObject>();
+                if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
+                    return new List<JobObject>();
 
-                var files = Directory.GetFiles(Folder, "*.html", SearchOption.TopDirectoryOnly).
-                    Concat(Directory.GetFiles(Folder, "*.json", SearchOption.TopDirectoryOnly)).
-                    ToList();
+                var files = Directory.GetFiles(folder, "*.html", SearchOption.TopDirectoryOnly)
+                    .Concat(Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly))
+                    .ToList();
 
-                jobs = files.Select(f => new JobObject(f)).ToList();
-                return jobs.ToList();
+                return files
+                    .Select(f => new JobObject(folder, f))
+                    .OrderBy(j => j.DataFileName)
+                    .ToList();
             }
             catch (Exception exp)
             {
-                Utilities.Logger.Error(exp.Message);
-                throw;
+                Utilities.Logger.Error(exp, "Error loading jobs from folder {Folder}", folder);
+                return new List<JobObject>();
             }
+        }
+
+        private async Task SetBindingAsync()
+        {
+            Jobs = GetJobs(Folder);
+            bs.DataSource = new BindingList<JobObject>(Jobs);
+            bs.ResetBindings(true);
+
+            lblJobCount.Text = Jobs.Count.ToString();
+            lstJobs.DataSource = bs;
+        }
+
+        #endregion
+
+        #region Navigation
+
+        private void btnFirst_Click(object sender, EventArgs e) => bs.Position = 0;
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            if (bs.Position > 0)
+                bs.Position -= 1;
         }
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-            if (bs.Position < bs.Count)
+            if (bs.Position < bs.Count - 1)
                 bs.Position += 1;
-        }
-
-        private void btnFirst_Click(object sender, EventArgs e)
-        {
-            bs.Position = 0;
         }
 
         private void btnLast_Click(object sender, EventArgs e)
         {
-            bs.Position = bs.Count - 1;
+            if (bs.Count > 0)
+                bs.Position = bs.Count - 1;
         }
 
-        private void btnPrev_Click(object sender, EventArgs e)
-        {
-            bs.Position -= 1;
-        }
+        #endregion
+
+        #region Selection & Rendering
 
         private async void bs_CurrentChanged(object sender, EventArgs e)
         {
-            Current = (bs?.Current as JobObject);
-            if (Current != null)
+            Current = bs?.Current as JobObject;
+            if (Current == null)
+                return;
+
+            txtStatus.Text = Current.DataFileName ?? string.Empty;
+
+            await wv1.EnsureCoreWebView2Async();
+            await wv2.EnsureCoreWebView2Async();
+
+            if (!string.IsNullOrEmpty(Current.HTML))
             {
-                txtStatus.Text = Current?.HTMLFileName;
-                if (lstJobs.Items.Count > 0)
-                {
-                    lstJobs.SelectedIndex = bs.Position;
-                }
-                //Current.id = Current.JobPostUrl.LocalPath.ToMd5Hash();
-                await wv1.EnsureCoreWebView2Async();
-                await wv2.EnsureCoreWebView2Async();
-                if (!string.IsNullOrEmpty(Current?.HTML))
-                {
-                    wv1.NavigateToString(Current?.HTML?.Replace("\\n", ""));
-                    RenderAsync();
-                }
+                wv1.NavigateToString(Current.HTML.Replace("\\n", ""));
+                RenderAsync();
             }
         }
 
         private async void lstJobs_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (lstJobs.SelectedIndex < 0)
+                return;
+
             try
             {
                 bs.Position = lstJobs.SelectedIndex;
                 Current = bs.Current as JobObject;
                 RenderAsync();
-                var directory = Current.HTMLFileName.Replace(".json", "");
-                if (Directory.Exists(directory))
-                {
-                    FileInfo jobfileinfo = new FileInfo(Current.HTMLFileName);
-                    var justname = jobfileinfo.Name;
-                    string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
-                    btnOpenCoverLetter.Enabled = File.Exists(documentFile) ? true : false;
-                }
 
+                UpdateCoverLetterButtonState();
             }
             catch (Exception exp)
             {
-                throw;
+                Utilities.Logger.Error(exp, "Error during list selection change");
+                return;
             }
 
             await wv1.EnsureCoreWebView2Async();
             await wv2.EnsureCoreWebView2Async();
 
             bs.EndEdit();
-
             RenderAsync();
+
             if (lstJobs.SelectedIndex >= 0)
             {
                 bs.Position = lstJobs.SelectedIndex;
@@ -180,92 +330,204 @@ namespace JobAnalyzer
             }
         }
 
-        private void btnChrome_Click(object sender, EventArgs e)
+        private void UpdateCoverLetterButtonState()
         {
-            var url = Current?.JobPostUrl?.ToString();
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-        }
+            if (Current == null)
+                return;
 
-        public void OpenChrome(string url)
-        {
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-        }
-
-        private void btnOpen_Click(object sender, EventArgs e)
-        {
-            if (File.Exists(Current?.HTMLFileName))
+            var directory = Current.DataFileName?.Replace(".json", "");
+            if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
             {
-                Process.Start("explorer.exe", $"/select,\"{Current?.HTMLFileName}\"");
+                var justname = new FileInfo(Current.DataFileName).Name;
+                string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
+                btnOpenCoverLetter.Enabled = File.Exists(documentFile);
+            }
+            else
+            {
+                btnOpenCoverLetter.Enabled = false;
             }
         }
 
-        private void btnOpenJson_Click(object sender, EventArgs e)
-        {
-            //if (File.Exists(Current?.JsonFileName))
-            //{
-            //    Process.Start("explorer.exe", $"/select,\"{Current?.JsonFileName}\"");
-            //}
-        }
+        #endregion
 
-        private void txtSearch_TextChanged(object sender, EventArgs e)
-        {
+        #region Search
 
-        }
-
-        private void btnSearch_Click(object sender, EventArgs e)
-        {
-
-        }
+        private void txtSearch_TextChanged(object sender, EventArgs e) { }
 
         private void txtSearch_KeyPress(object sender, KeyPressEventArgs e)
         {
+            if (e.KeyChar != (char)Keys.Enter)
+                return;
 
-            if (e.KeyChar == (char)Keys.Enter)
+            var searchText = txtSearch.Text.Trim();
+            if (searchText.Length > 0)
             {
-                if (txtSearch.Text.Trim().Length > 0)
-                {
-                    var tmp = Jobs.Where(j => j.HTML.Contains(txtSearch.Text)).ToList();
-                    bs.DataSource = new BindingList<JobObject>(tmp);
-                    lstJobs.DataSource = new BindingList<JobObject>(tmp);
-                }
-                else
-                {
-                    bs.DataSource = new BindingList<JobObject>(Jobs);
-                    lstJobs.DataSource = new BindingList<JobObject>(Jobs);
-                }
+                var filtered = Jobs.Where(j => j.HTML != null && j.HTML.Contains(searchText)).ToList();
+                bs.DataSource = new BindingList<JobObject>(filtered);
+                lstJobs.DataSource = new BindingList<JobObject>(filtered);
+            }
+            else
+            {
+                bs.DataSource = new BindingList<JobObject>(Jobs);
+                lstJobs.DataSource = new BindingList<JobObject>(Jobs);
             }
         }
 
-        private void btnExport_Click(object sender, EventArgs e)
-        {
-            ExportDataFile();
-        }
-
-        private void btnSaveAll_Click(object sender, EventArgs e)
-        {
-            SaveDataFile();
-        }
-
-        private void btnLoad_Click(object sender, EventArgs e)
-        {
-            LoadDataFile();
-        }
-
-        private void btnSaveToDb_Click(object sender, EventArgs e)
-        {
-            SaveToDB();
-        }
-
-        private void saveToDBToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveToDB();
-        }
         #endregion
 
-        private void mnuDelete_Click(object sender, EventArgs e)
+        #region Processing
+
+        private async void btnProcess_Click(object sender, EventArgs e)
         {
-            DeleteJob();
+            if (Current == null)
+                return;
+
+            var jobCopy = Current.DeepClone();
+            var task = ProcessJobAsync(jobCopy);
+
+            // Track the task
+            _processingTasks.Add(task);
+            UpdateProcessingState();
+
+            try
+            {
+                await task;
+            }
+            finally
+            {
+                _processingTasks.Remove(task);
+                UpdateProcessingState();
+            }
         }
+
+        private async Task ProcessJobAsync(JobObject job)
+        {
+            try
+            {
+                using var aicall = new AICall();
+                var response = await aicall.UploadAndProcess(Folder, job);
+
+                if (response.Success && response.Result != null)
+                {
+                    var existing = Jobs.FirstOrDefault(j => j.id == response.Result.id);
+                    existing?.CopyFrom(response.Result);
+                    bs.EndEdit();
+                    bs.ResetBindings(true);
+                    RenderAsync();
+                    existing.Save(Folder);
+                }
+            }
+            catch (Exception exp)
+            {
+
+                Utilities.Logger.Error(exp);
+            }
+        }
+
+        /// <summary>
+        /// Updates the wait cursor and status bar based on how many tasks are still in flight.
+        /// </summary>
+        private void UpdateProcessingState()
+        {
+            // Remove completed/faulted tasks that may still be in the list
+            _processingTasks.RemoveAll(t => t.IsCompleted);
+
+            int remaining = _processingTasks.Count;
+
+            if (remaining > 0)
+            {
+                UseWaitCursor = true;
+                txtStatus.Text = $"Processing {remaining} job(s)...";
+
+                // Reset and start the elapsed timer
+                _timerStart = DateTime.UtcNow;
+                txtTimer.Text = "00:00:00";
+                if (!_elapsedTimer.Enabled)
+                    _elapsedTimer.Start();
+            }
+            else
+            {
+                UseWaitCursor = false;
+                _elapsedTimer.Stop();
+                txtStatus.Text = $"All processing complete. ({txtTimer.Text})";
+            }
+        }
+
+        private void ElapsedTimer_Tick(object? sender, EventArgs e)
+        {
+            var elapsed = DateTime.UtcNow - _timerStart;
+            txtTimer.Text = elapsed.ToString(@"hh\:mm\:ss");
+        }
+
+        #endregion
+
+        #region Open in Browser
+
+        private void btnChrome_Click(object sender, EventArgs e) =>
+            OpenInBrowser(Current?.JobPostUrl?.ToString());
+
+        private void btnLnkCompany_Click(object sender, EventArgs e) =>
+            OpenInBrowser(Current?.CompanyUrl?.ToString());
+
+        private void btnLinkCoLinkedin_Click(object sender, EventArgs e) =>
+            OpenInBrowser(Current?.CompanyLinkedIn?.ToString());
+
+        private void bntJonpost_Click(object sender, EventArgs e) =>
+            OpenInBrowser(Current?.JobPostUrl?.ToString());
+
+        public void OpenChrome(string url) => OpenInBrowser(url);
+
+        private static void OpenInBrowser(string? url)
+        {
+            if (!string.IsNullOrEmpty(url))
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+
+        #endregion
+
+        #region File Operations
+
+        private void btnOpen_Click(object sender, EventArgs e)
+        {
+            var currentFile = Path.Combine(Folder, Current.DataFileName);
+            if (!string.IsNullOrEmpty(Current?.DataFileName) && File.Exists(currentFile))
+                Process.Start("explorer.exe", $"/select,\"{currentFile}\"");
+        }
+
+        private void btnExport_Click(object sender, EventArgs e) => ExportDataFile();
+        private void btnSaveAll_Click(object sender, EventArgs e) => SaveDataFile();
+        private void btnLoad_Click(object sender, EventArgs e) => LoadDataFile();
+        private void btnLoadJobs_Click(object sender, EventArgs e) => OpenLoadDialogAndLoadJobs();
+        private void btnRefreshFolder_Click(object sender, EventArgs e) => SetBindingAsync();
+
+        #endregion
+
+        #region Save & Database
+
+        private void btnSaveJob_Click(object sender, EventArgs e)
+        {
+            bs.EndEdit();
+            Current?.Save(Folder);
+        }
+
+        private void mnuSave_Click(object sender, EventArgs e) => Current?.Save(Folder);
+
+        private void btnSaveToDb_Click(object sender, EventArgs e) => SaveToDB();
+        private void saveToDBToolStripMenuItem_Click(object sender, EventArgs e) => SaveToDB();
+
+        private void btnSaveAllJson_Click(object sender, EventArgs e)
+        {
+            using var saveFileDialog = new SaveFileDialog { Filter = "All JSON File (*.json)|*.json" };
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                var data = ((IEnumerable<JobObject>)bs.DataSource).ToList();
+                File.WriteAllText(saveFileDialog.FileName, Newtonsoft.Json.JsonConvert.SerializeObject(data));
+            }
+        }
+
+        #endregion
+
+        #region Database Toggle
 
         private void mnuJobsFromDb_Click(object sender, EventArgs e)
         {
@@ -273,7 +535,8 @@ namespace JobAnalyzer
             if (allJobs.Success)
             {
                 DbJobs = allJobs.Result;
-                SetBindin(DbJobs);
+                Jobs = DbJobs;
+                SetBindingAsync();
                 JobsFromDb = true;
             }
         }
@@ -288,210 +551,189 @@ namespace JobAnalyzer
                 if (allJobs.Success)
                 {
                     DbJobs = allJobs.Result;
-                    SetBindin(DbJobs);
-
+                    Jobs = DbJobs;
+                    SetBindingAsync();
                 }
             }
             else
             {
                 btnTuggle.Text = "From Database";
-                //Jobs = GetJobs(Folder);
-                SetBindin(Jobs);
+                SetBindingAsync();
             }
         }
 
-        private void label14_Click(object sender, EventArgs e)
+        #endregion
+
+        #region Delete & Sort
+
+        private void mnuDelete_Click(object sender, EventArgs e) => DeleteJob();
+        private void btnDelete_Click(object sender, EventArgs e) => DeleteJob();
+        private void deleteTSM_Click(object sender, EventArgs e) => DeleteJob();
+
+        private void mnuAcc_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(Current?.id ?? string.Empty);
+            Jobs.Sort((a, b) => string.Compare(a.DataFileName, b.DataFileName, StringComparison.Ordinal));
+            bs.ResetBindings(true);
+            lstJobs.DataSource = bs;
         }
 
-        private async void btnProcess_Click(object sender, EventArgs e)
+        private void mnuDec_Click(object sender, EventArgs e)
         {
-            txtStatus.Text = "Please wait, Processing";
-            this.UseWaitCursor = true;
-
-            using (AICall aicall = new AICall())
-            {
-                JobObject job = ((JobObject)Current).DeepClone();
-
-                Response<JobObject> response = await aicall.GetResponseAsync(job);
-                if (response.Success)
-                {
-                    Jobs.FirstOrDefault(job => job.id == response.Result.id).CopyFrom(response.Result);
-                    bs.EndEdit();
-                    RenderAsync();
-                    job.Save();
-                    SetBindin(GetJobs(Folder));
-                }
-            }
-
-            txtStatus.Text = $"Data file written.";
-            this.UseWaitCursor = false;
+            Jobs.Sort((a, b) => string.Compare(b.DataFileName, a.DataFileName, StringComparison.Ordinal));
+            bs.ResetBindings(true);
+            lstJobs.DataSource = bs;
         }
 
-        private void btnLnkCompany_Click(object sender, EventArgs e)
-        {
-            OpenChrome(Current?.CompanyUrl?.ToString());
-        }
+        #endregion
 
-        private void btnLinkCoLinkedin_Click(object sender, EventArgs e)
-        {
-            OpenChrome(Current?.CompanyLinkedIn?.ToString());
-        }
+        #region Cover Letter
 
-        private void bntJonpost_Click(object sender, EventArgs e)
-        {
-            OpenChrome(Current?.JobPostUrl?.ToString());
-        }
-
-        private void btnSaveJob_Click(object sender, EventArgs e)
-        {
-            bs.EndEdit();
-            Current.Save();
-        }
-
-
-        private void mnuSave_Click(object sender, EventArgs e)
-        {
-            Current.Save();
-        }
-
-        private void btnLoadJobs_Click(object sender, EventArgs e)
-        {
-            OpenLoadDialogAndLoadJobs();
-        }
-
-        private void btnRefreshFolder_Click(object sender, EventArgs e)
-        {
-            SetBindin(GetJobs(Folder));
-        }
-
-        public Response<string> CreateCoverLetter(JobObject job)
+        public Response<JobFiles> CreateCoverLetter(JobObject job)
         {
             try
             {
-                var directory = job.HTMLFileName.Replace(".json", "");
+                var directory = job.DataFileName.Replace(".json", "");
                 if (!Directory.Exists(directory))
-                {
                     Directory.CreateDirectory(directory);
-                    FileInfo jobfileinfo = new FileInfo(job.HTMLFileName);
-                    var justname = jobfileinfo.Name;
-                    string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
-                    File.Copy("Coverletter.docx", documentFile);
-                    ReplaceText(documentFile, "COVERLETTER", job.Coverletter.Replace("\\n", "\\r\\n"));
-                    ReplaceText(documentFile, "DATE", DateTime.Now.ToString("MMM, dd yyyy"));
-                    ReplaceText(documentFile, "JOBTITLE", job.Title);
-                    return new Response<string>(documentFile);
+
+
+                var justname = new FileInfo(job.DataFileName).Name;
+                string coverletterfile = Path.Combine(directory, justname.Replace(".json", ".docx"));
+                string resumefile = Path.Combine(directory, "Amirhossein Nassergivchi.docx");
+
+                File.Copy("Coverletter.docx", coverletterfile);
+                ReplaceText(coverletterfile, "COVERLETTER", job.Coverletter.Replace("\\n", "\\r\\n"));
+                ReplaceText(coverletterfile, "DATE", DateTime.Now.ToString("MMM, dd yyyy"));
+                ReplaceText(coverletterfile, "JOBTITLE", job.Title);
+                ReplaceText(coverletterfile, "[Your Name]", "Amirhossein Nassergivchi");
+
+                if (job.ProfessionalSummary != null)
+                {
+                    File.Copy("Resume.docx", resumefile);
+                    ReplaceText(resumefile, "[PROFESSIONALSUMMARY]", job.ProfessionalSummary.Replace("\\n", "\\r\\n"));
                 }
-                throw new Exception("Cover letter already exists for this job.");
+
+                return new Response<JobFiles>(new JobFiles { Coverletter = coverletterfile, Resume = resumefile });
             }
             catch (Exception ex)
             {
-                //MessageBox.Show("Error parsing response: " + ex.Message);
                 Utilities.Logger.Error(ex, "Error creating cover letter");
-                return new Response<string>(ex);
+                return new Response<JobFiles>(ex);
             }
         }
 
         public void ReplaceText(string filePath, string oldText, string newText)
         {
-            using (var doc = WordprocessingDocument.Open(filePath, true))
+            using var doc = WordprocessingDocument.Open(filePath, true);
+            var body = doc.MainDocumentPart.Document.Body;
+
+            foreach (var text in body.Descendants<Text>())
             {
-                var body = doc.MainDocumentPart.Document.Body;
-
-                foreach (var text in body.Descendants<Text>())
-                {
-                    if (text.Text.Contains(oldText))
-                        text.Text = text.Text.Replace(oldText, newText);
-                }
-
-                doc.MainDocumentPart.Document.Save();
+                if (text.Text.Contains(oldText))
+                    text.Text = text.Text.Replace(oldText, newText);
             }
-        }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-
+            doc.MainDocumentPart.Document.Save();
         }
 
         private void btnAttachCoverLetter_Click(object sender, EventArgs e)
         {
-            var coverLetterFile = CreateCoverLetter(Current);
+            if (Current == null)
+                return;
 
-            if (coverLetterFile.Success)
+            var result = CreateCoverLetter(Current);
+            if (result.Success)
             {
-                Process.Start(new ProcessStartInfo(coverLetterFile.Result) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(result.Result.Coverletter) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(result.Result.Resume) { UseShellExecute = true });
             }
             else
-            {
-                MessageBox.Show("Error creating cover letter: " + coverLetterFile.ErrorMessage);
-            }
+                MessageBox.Show("Error creating cover letter: " + result.ErrorMessage);
         }
 
         private void btnOpenCoverLetter_Click(object sender, EventArgs e)
         {
-            var directory = Current.HTMLFileName.Replace(".json", "");
-            if (Directory.Exists(directory))
-            {
-                FileInfo jobfileinfo = new FileInfo(Current.HTMLFileName);
-                var justname = jobfileinfo.Name;
-                string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
+            if (Current == null)
+                return;
 
+            var directory = Current.DataFileName.Replace(".json", "");
+            if (!Directory.Exists(directory))
+                return;
 
-                Process.Start(new ProcessStartInfo(documentFile) { UseShellExecute = true });
-            }
+            var justname = new FileInfo(Current.DataFileName).Name;
+            string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
+            Process.Start(new ProcessStartInfo(documentFile) { UseShellExecute = true });
         }
 
         private void btnAttach_Click(object sender, EventArgs e)
         {
-            var directory = Current.HTMLFileName.Replace(".json", "");
-            if (Directory.Exists(directory))
-            {
-                FileInfo jobfileinfo = new FileInfo(Current.HTMLFileName);
-                var justname = jobfileinfo.Name;
-                string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
+            if (Current == null)
+                return;
 
-                Current.CoverletterFile = File.ReadAllBytes(documentFile).ToBase64();
+            var directory = Current.DataFileName.Replace(".json", "");
+            if (!Directory.Exists(directory))
+                return;
 
-                bs.EndEdit();
-                Current.Save();
-            }
+            var justname = new FileInfo(Current.DataFileName).Name;
+            string documentFile = Path.Combine(directory, justname.Replace(".json", "_CoverLetter.docx"));
+
+            Current.CoverletterFile = File.ReadAllBytes(documentFile).ToBase64();
+            bs.EndEdit();
+            Current.Save(Folder);
         }
+
+        #endregion
+
+        #region Miscellaneous
+
+        private void label14_Click(object sender, EventArgs e) =>
+            Clipboard.SetText(Current?.id ?? string.Empty);
 
         private void label10_Click(object sender, EventArgs e)
         {
-            Current.CreatedAt = new FileInfo(Current.HTMLFileName).CreationTime;
+            if (Current == null || string.IsNullOrEmpty(Current.DataFileName))
+                return;
+
+            Current.CreatedAt = new FileInfo(Current.DataFileName).CreationTime;
             bs.EndEdit();
-            Current.Save();
+            Current.Save(Folder);
         }
 
         private void chkApplied_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkApplied.Checked)
-            {
-                Current.AppliedAt = DateTime.Now;
-                bs.EndEdit();
-                Current.Save();
-            }
-        }
-
-        private void btnSaveAllJson_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog() { Filter = "All JSON File (*.json)|*.json" };
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                var datatosave = ((IEnumerable<JobObject>)bs.DataSource).ToList();
-                File.WriteAllText(saveFileDialog.FileName, Newtonsoft.Json.JsonConvert.SerializeObject(datatosave));
-            }
+            //if (Current != null)
+            //{
+            //    Current.AppliedAt = DateTime.Now;
+            //    Current.Applied = true;
+            //    bs.EndEdit();
+            //    Current.Save();
+            //}
         }
 
         private void btnExperience_Click(object sender, EventArgs e)
         {
-            if(Current.ProfessionalSummary != null)
+            if (!string.IsNullOrEmpty(Current?.ProfessionalSummary))
             {
                 Clipboard.SetText(Current.ProfessionalSummary);
                 MessageBox.Show(Current.ProfessionalSummary);
             }
         }
+
+        private void toolStripButton1_Click(object sender, EventArgs e) {
+
+            var result = CreateCoverLetter(Current);
+            if (result.Success)
+            {
+                Process.Start(new ProcessStartInfo(result.Result.Coverletter) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(result.Result.Resume) { UseShellExecute = true });
+            }
+            else
+                MessageBox.Show("Error creating cover letter: " + result.ErrorMessage);
+        }
+        private void btnOpenJson_Click(object sender, EventArgs e) { }
+        private void btnSearch_Click(object sender, EventArgs e) { }
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) { }
+
+        #endregion
     }
 }
